@@ -1,6 +1,7 @@
 from LangLexer import LangLexer
 from LangTranslator import LangTranslator
 from sly import Parser
+from Model import *
 
 
 class LangParser(Parser):
@@ -19,11 +20,11 @@ class LangParser(Parser):
 
     @_('DECLARE declarations BEGIN commands END')
     def program(self, t):
-        return t[3]
+        return t[3] + "\nHALT"
 
     @_('BEGIN commands END')
     def program(self, t):
-        return t[1]
+        return t[1] + "\nHALT"
 
     @_('declarations "," ID')
     def declarations(self, t):
@@ -89,66 +90,33 @@ class LangParser(Parser):
     def expression(self, t):
         return t[0]
 
-    @_('value "+" value')
+    @_('value "+" value',
+       'value "-" value',
+       'value "*" value',
+       'value "/" value',
+       'value "%" value')
     def expression(self, t):
-        pass    # todo
+        return OperationObject(val1=t[0], val2=t[2], operation=t[1])
 
-    @_('value "-" value')
-    def expression(self, t):
-        pass    # todo
-
-    @_('value "*" value')
-    def expression(self, t):
-        pass    # todo
-
-    @_('value "/" value')
-    def expression(self, t):
-        pass    # todo
-
-    @_('value "%" value')
-    def expression(self, t):
-        pass    # todo
-
-    @_('value EQ value')
+    @_('value EQ value',
+       'value NEQ value',
+       'value LT value',
+       'value GT value',
+       'value LEQ value',
+       'value GEQ value')
     def condition(self, t):
-        pass    # todo
+        return ConditionObject(val1=t[0], val2=t[2], comparison=t[1])
 
-    @_('value NEQ value')
-    def condition(self, t):
-        pass    # todo
-
-    @_('value LT value')
-    def condition(self, t):
-        pass    # todo
-
-    @_('value GT value')
-    def condition(self, t):
-        pass    # todo
-
-    @_('value LEQ value')
-    def condition(self, t):
-        pass    # todo
-
-    @_('value GEQ value')
-    def condition(self, t):
-        pass    # todo
-
-    @_('NUM')
-    def value(self, t):
-        return t[0]
-
-    @_('identifier')
+    @_('NUM',
+       'identifier')
     def value(self, t):
         return t[0]
 
     @_('ID')
     def identifier(self, t):
-        return t[0]
+        return ReferenceObject(t[0], None)
 
-    @_('ID "(" ID ")"')
+    @_('ID "(" ID ")"',
+       'ID "(" NUM ")"')
     def identifier(self, t):
-        pass    # todo
-
-    @_('ID "(" NUM ")"')
-    def identifier(self, t):
-        pass    # todo
+        return ReferenceObject(t[0], t[2])

@@ -3,19 +3,20 @@ from errors import *
 
 class LangArray:
 
-    def __init__(self, first, last):
+    def __init__(self, first, last, adr):
         if last < first:
             raise InvalidRangeError
 
         if first < 0:
             raise NegativeValueError
 
-        self.__address = None
+        self.__address = adr
         self.__bias = first
         self.__length = last - first + 1
+        self.__initialized = False
 
     def get_address(self, offset=None):
-        if self.__address is None:
+        if not self.__initialized:
             raise VariableUnitilializedError
         elif offset is None:
             raise InvalidReferenceError("Array is not a variable.")
@@ -31,4 +32,7 @@ class LangArray:
         return self.__length
 
     def is_initialized(self):
-        return self.__address is None
+        return self.__initialized
+
+    def initialize(self):
+        self.__initialized = True

@@ -12,14 +12,14 @@ class LangVariableTable:
     def add_variable(self, name):
         if name in self.__table:
             raise SecondDeclarationError
-        self.__table[name] = LangInt()
+        self.__table[name] = LangInt(self.__marker)
+        self.__marker += 1
 
     def add_array(self, name, first, last):
         if name in self.__table:
             raise SecondDeclarationError
-        arr = LangArray(first, last)
+        arr = LangArray(first, last, self.__marker)
         self.__table[name] = arr
-        arr.address = self.__marker
         self.__marker += len(arr)
 
     def get_address(self, name, offset=None):
@@ -34,8 +34,7 @@ class LangVariableTable:
         try:
             var = self.__table[name]
             if not var.is_initialized():
-                var.set_address(self.__marker)
-                self.__marker += 1
+                var.initialize()
             return self.get_address(name, offset)
         except (VariableUnitilializedError, InvalidReferenceError) as e:
             raise e
