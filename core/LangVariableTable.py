@@ -7,7 +7,7 @@ class LangVariableTable:
 
     def __init__(self):
         self.__table = dict()
-        self.__marker = 0
+        self.__marker = 1
 
     def add_variable(self, name):
         if name in self.__table:

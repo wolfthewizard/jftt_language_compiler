@@ -10,39 +10,41 @@ class LangTranslator:
     def __init__(self):
         self.variable_table = LangVariableTable()
 
-    @staticmethod
-    def __generate_constant(value: int, register="a"):
-        commands = []
-        while value:
-            if value % 2:
-                commands.append("INC " + register)
-                value -= 1
-            else:
-                commands.append("SHL " + register)
-                value //= 2
-        commands.append("RESET " + register)
-        return "\n".join(commands[::-1])
+    def __put_value_to_register(self, val: Value, register="a", initialize=False) -> str:
+        if val.is_int():
+            return self.__generate_constant(val.core, register)
+        else:
+            code = self.__put_address_to_register(val.core, register, initialize)
+            code += "\n" + "LOAD {} {}".format(register, register)
+            return code
 
-    def __generate_address(self, identifier: Identifier, register="a", initialize=False):
-        address = self.variable_table.get_address(identifier.name, identifier.offset, initialize)
+    def __put_address_to_register(self, idd: Identifier, register="a", initialize=False) -> str:
+        address = self.variable_table.get_address(idd.name, idd.offset, initialize)
         code = self.__generate_constant(address, register)
-        if identifier.offset is None or type(identifier.offset) == int:
+        if idd.offset is None or type(idd.offset) == int:
             return code
         else:
-            bias = self.variable_table.get_bias(identifier.name)
+            bias = self.variable_table.get_bias(idd.name)
             reg = "b" if register == "a" else "c"
-            offset_address = self.variable_table.get_address(identifier.offset, None)
+            offset_address = self.variable_table.get_address(idd.offset, None)
             code += self.__generate_constant() + "\n"
-            code += "LOAD " + reg + " " + reg
+            code += "LOAD {} {}".format(reg, reg)
             return code
             # todo: finish this code after splitting functions into more atomic methods
             #       establish new convention where methods have name of matched non-terminal to hint their purpose
 
-    def __generate(self, parameter, register="a", initialize=False):
-        if type(parameter) == int:
-            return self.__generate_constant(parameter, register)
-        else:
-            return self.__generate_address(parameter, register, initialize)
+    @staticmethod
+    def __generate_constant(value: int, register="a") -> str:
+        commands = []
+        while value:
+            if value % 2:
+                commands.append("INC {}".format(register))
+                value -= 1
+            else:
+                commands.append("SHL {}".format(register))
+                value //= 2
+        commands.append("RESET {}".format(register))
+        return "\n".join(commands[::-1])
 
     def declare_variable(self, name):
         self.variable_table.add_variable(name)
@@ -57,24 +59,23 @@ class LangTranslator:
             pass    # todo: implement handling operations (will probably split method)
 
     def __assign_value(self, changed_identifier: Identifier, assigned_value: Value) -> str:
-        code = ""
-        if assigned_value.is_int():
-            code += self.__generate_constant(assigned_value.core) + "\n"
+        code = self.__put_value_to_register(assigned_value)
+        code += "\n" + self.__put_address_to_register(changed_identifier, register="b", initialize=True)
+        code += "\nSTORE a b"
+        return code
+
+    def read(self, idd: Identifier) -> str:
+        code = self.__put_address_to_register(idd, initialize=True)
+        code += "\nGET a"
+        return code
+
+    def write(self, val: Value) -> str:
+        if val.is_int():
+            code = self.__put_value_to_register(val)
+            code += "\nRESET b"
+            code += "\nSTORE a b"
+            code += "\nPUT b"
         else:
-            code += self.__generate_address(assigned_value.core) + "\n"
-            code += "LOAD a a\n"
-        code += self.__generate(changed_identifier, "b", initialize=True) + "\n"
-        code += "STORE a b"
-        return code
-
-    def read(self, id: Identifier):
-        code = ""
-        code += self.__generate(id, initialize=True) + "\n"
-        code += "GET a"
-        return code
-
-    def write(self, val: Value):
-        code = ""
-        code += self.__generate(val.core) + "\n"
-        code += "PUT a"
+            code = self.__put_address_to_register(val.core)
+            code += "\nPUT a"
         return code
