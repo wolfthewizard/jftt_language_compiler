@@ -8,7 +8,7 @@ class Identifier:
         if not self.offset:
             return self.name
         else:
-            return "{}({})".format(self.name, str(self.offset))
+            return "{}({})".format(self.name, self.offset)
 
     def __repr__(self):
         return str(self)
