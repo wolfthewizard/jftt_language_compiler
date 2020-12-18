@@ -39,9 +39,9 @@ class LangLexer(Lexer):
 
     ASGN = r":="
     NEQ = r"!="
-    EQ = r"="
     LEQ = r"<="
     GEQ = r">="
+    EQ = r"="
     LT = r"<"
     GT = r">"
     ID = r"[_a-z]+"
@@ -53,7 +53,7 @@ class LangLexer(Lexer):
 
     ignore = " \t\n"
 
-    @_(r'\[[^\[\]*]\]')
+    @_(r'\[[^\[\]]*\]')
     def comment(self, t):
         pass
 

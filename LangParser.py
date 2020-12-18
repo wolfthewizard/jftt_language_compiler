@@ -114,9 +114,9 @@ class LangParser(Parser):
 
     @_('ID')
     def identifier(self, t):
-        return ReferenceObject(t[0], None)
+        return Identifier(t[0], None)
 
     @_('ID "(" ID ")"',
        'ID "(" NUM ")"')
     def identifier(self, t):
-        return ReferenceObject(t[0], t[2])
+        return Identifier(t[0], t[2])

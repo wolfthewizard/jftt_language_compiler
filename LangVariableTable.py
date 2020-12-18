@@ -22,21 +22,16 @@ class LangVariableTable:
         self.__table[name] = arr
         self.__marker += len(arr)
 
-    def get_address(self, name, offset=None):
+    def get_address(self, name, offset=None, initialize=False):
         try:
-            return self.__table[name].get_address(offset)
+            var = self.__table[name]
+            if initialize:
+                var.initialize()
+            return var.get_address(offset)
         except (VariableUnitilializedError, InvalidReferenceError) as e:
             raise e
         except KeyError:
             raise VariableUndeclaredError
 
-    def init_and_get_address(self, name, offset=None):
-        try:
-            var = self.__table[name]
-            if not var.is_initialized():
-                var.initialize()
-            return self.get_address(name, offset)
-        except (VariableUnitilializedError, InvalidReferenceError) as e:
-            raise e
-        except KeyError:
-            raise VariableUndeclaredError
+    def get_bias(self, name):
+        return self.__table[name].get_bias()

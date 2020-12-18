@@ -25,6 +25,9 @@ class LangArray:
         else:
             return self.__address + offset - self.__bias
 
+    def get_bias(self):
+        return self.__bias
+
     def set_address(self, adr):
         self.__address = adr
 

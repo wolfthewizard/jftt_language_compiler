@@ -1,8 +1,14 @@
-class ReferenceObject:
+class Identifier:
 
     def __init__(self, name, offset):
         self.name = name
         self.offset = offset
+
+    def __repr__(self):
+        if not self.offset:
+            return self.name
+        else:
+            return self.name + "(" + str(self.offset) + ")"
 
 
 class OperationObject:
