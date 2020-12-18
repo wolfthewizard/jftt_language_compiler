@@ -19,19 +19,21 @@ class LangTranslator:
             return code
 
     def __put_address_to_register(self, idd: Identifier, register="a", initialize=False) -> str:
-        address = self.variable_table.get_address(idd.name, idd.offset, initialize)
-        code = self.__generate_constant(address, register)
         if idd.offset is None or type(idd.offset) == int:
+            address = self.variable_table.get_address(idd.name, idd.offset, initialize)
+            code = self.__generate_constant(address, register)
             return code
         else:
             bias = self.variable_table.get_bias(idd.name)
-            reg = "b" if register == "a" else "c"
-            offset_address = self.variable_table.get_address(idd.offset, None)
-            code += self.__generate_constant() + "\n"
-            code += "LOAD {} {}".format(reg, reg)
+            address = self.variable_table.get_address(idd.name, bias, initialize)
+            reg = "b" if register == "a" else "c"   # todo: change after implementing register machine
+
+            code = self.__generate_constant(address, register)
+            code += "\n" + self.__put_value_to_register(Value(Identifier(idd.offset)), register=reg)
+            code += "\nADD {} {}".format(register, reg)
+            code += "\n" + self.__put_value_to_register(Value(bias), register=reg)
+            code += "\nSUB {} {}".format(register, reg)
             return code
-            # todo: finish this code after splitting functions into more atomic methods
-            #       establish new convention where methods have name of matched non-terminal to hint their purpose
 
     @staticmethod
     def __generate_constant(value: int, register="a") -> str:
