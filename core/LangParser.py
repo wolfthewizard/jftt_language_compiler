@@ -1,7 +1,10 @@
-from LangLexer import LangLexer
-from LangTranslator import LangTranslator
+from core.LangLexer import LangLexer
+from core.LangTranslator import LangTranslator
 from sly import Parser
-from Model import *
+from model.nonterminals.Identifier import Identifier
+from model.nonterminals.Condition import Condition
+from model.nonterminals.Expression import Expression
+from model.nonterminals.Value import Value
 
 
 class LangParser(Parser):
@@ -52,7 +55,7 @@ class LangParser(Parser):
 
     @_('identifier ASGN expression ";"')
     def command(self, t):
-        return self.lang_translator.assign_value(t[0], t[2])
+        return self.lang_translator.assign(t[0], t[2])
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, t):
@@ -88,7 +91,7 @@ class LangParser(Parser):
 
     @_('value')
     def expression(self, t):
-        return t[0]
+        return Expression(t[0])
 
     @_('value "+" value',
        'value "-" value',
@@ -96,7 +99,7 @@ class LangParser(Parser):
        'value "/" value',
        'value "%" value')
     def expression(self, t):
-        return OperationObject(val1=t[0], val2=t[2], operation=t[1])
+        return Expression(val1=t[0], val2=t[2], operation=t[1])
 
     @_('value EQ value',
        'value NEQ value',
@@ -105,16 +108,16 @@ class LangParser(Parser):
        'value LEQ value',
        'value GEQ value')
     def condition(self, t):
-        return ConditionObject(val1=t[0], val2=t[2], comparison=t[1])
+        return Condition(val1=t[0], val2=t[2], comparison=t[1])
 
     @_('NUM',
        'identifier')
     def value(self, t):
-        return t[0]
+        return Value(t[0])
 
     @_('ID')
     def identifier(self, t):
-        return Identifier(t[0], None)
+        return Identifier(t[0])
 
     @_('ID "(" ID ")"',
        'ID "(" NUM ")"')

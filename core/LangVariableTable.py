@@ -1,6 +1,6 @@
-from errors import *
-from LangInt import LangInt
-from LangArray import LangArray
+from model.errors import *
+from model.internal.LangInt import LangInt
+from model.internal.LangArray import LangArray
 
 
 class LangVariableTable:

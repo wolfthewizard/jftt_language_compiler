@@ -1,5 +1,5 @@
-from LangLexer import LangLexer
-from LangParser import LangParser
+from core.LangLexer import LangLexer
+from core.LangParser import LangParser
 import sys
 
 

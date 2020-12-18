@@ -1,4 +1,4 @@
-from errors import *
+from model.errors import *
 
 
 class LangArray:

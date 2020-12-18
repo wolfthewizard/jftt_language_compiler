@@ -1,4 +1,8 @@
-from LangVariableTable import LangVariableTable
+from core.LangVariableTable import LangVariableTable
+from model.nonterminals.Expression import Expression
+from model.nonterminals.Value import Value
+from model.nonterminals.Identifier import Identifier
+from model.nonterminals.Condition import Condition
 
 
 class LangTranslator:
@@ -7,7 +11,7 @@ class LangTranslator:
         self.variable_table = LangVariableTable()
 
     @staticmethod
-    def __generate_constant(value, register="a"):
+    def __generate_constant(value: int, register="a"):
         commands = []
         while value:
             if value % 2:
@@ -19,15 +23,15 @@ class LangTranslator:
         commands.append("RESET " + register)
         return "\n".join(commands[::-1])
 
-    def __generate_address(self, ref_obj, register="a", initialize=False):
-        address = self.variable_table.get_address(ref_obj.name, ref_obj.offset, initialize)
+    def __generate_address(self, identifier: Identifier, register="a", initialize=False):
+        address = self.variable_table.get_address(identifier.name, identifier.offset, initialize)
         code = self.__generate_constant(address, register)
-        if ref_obj.offset is None or type(ref_obj.offset) == int:
+        if identifier.offset is None or type(identifier.offset) == int:
             return code
         else:
-            bias = self.variable_table.get_bias(ref_obj.name)
+            bias = self.variable_table.get_bias(identifier.name)
             reg = "b" if register == "a" else "c"
-            offset_address = self.variable_table.get_address(ref_obj.offset, None)
+            offset_address = self.variable_table.get_address(identifier.offset, None)
             code += self.__generate_constant() + "\n"
             code += "LOAD " + reg + " " + reg
             return code
@@ -46,25 +50,31 @@ class LangTranslator:
     def declare_array(self, name, first, last):
         self.variable_table.add_array(name, first, last)
 
-    def assign_value(self, ref_target, ref_source):
-        code = ""
-        if type(ref_source) == int:
-            code += self.__generate_constant(ref_source) + "\n"
+    def assign(self, changed_identifier: Identifier, assigned_expression: Expression) -> str:
+        if assigned_expression.is_value():
+            return self.__assign_value(changed_identifier, assigned_expression.val1)
         else:
-            code += self.__generate_address(ref_source) + "\n"
+            pass    # todo: implement handling operations (will probably split method)
+
+    def __assign_value(self, changed_identifier: Identifier, assigned_value: Value) -> str:
+        code = ""
+        if assigned_value.is_int():
+            code += self.__generate_constant(assigned_value.core) + "\n"
+        else:
+            code += self.__generate_address(assigned_value.core) + "\n"
             code += "LOAD a a\n"
-        code += self.__generate(ref_target, "b", initialize=True) + "\n"
+        code += self.__generate(changed_identifier, "b", initialize=True) + "\n"
         code += "STORE a b"
         return code
 
-    def read(self, ref_obj):
+    def read(self, id: Identifier):
         code = ""
-        code += self.__generate(ref_obj, initialize=True) + "\n"
+        code += self.__generate(id, initialize=True) + "\n"
         code += "GET a"
         return code
 
-    def write(self, par):
+    def write(self, val: Value):
         code = ""
-        code += self.__generate(par) + "\n"
+        code += self.__generate(val.core) + "\n"
         code += "PUT a"
         return code
