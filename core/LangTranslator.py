@@ -38,6 +38,10 @@ class LangTranslator:
             return code
 
     @staticmethod
+    def __copy_register(source_reg: str, dest_reg: str):
+        return "RESET {}\nADD {} {}".format(dest_reg, dest_reg, source_reg)
+
+    @staticmethod
     def __generate_constant(value: int, register) -> str:
         commands = []
         while value:
@@ -50,18 +54,17 @@ class LangTranslator:
         commands.append("RESET {}".format(register))
         return "\n".join(commands[::-1])
 
-    @staticmethod
-    def __perform_operation(reg1: str, reg2: str, operation: str):
+    def __perform_operation(self, reg1: str, reg2: str, operation: str):
         if operation == "+":
-            return LangTranslator.__perform_addition(reg1, reg2)
+            return self.__perform_addition(reg1, reg2)
         elif operation == "-":
-            return LangTranslator.__perform_subtraction(reg1, reg2)
+            return self.__perform_subtraction(reg1, reg2)
         elif operation == "*":
-            return LangTranslator.__perform_multiplication(reg1, reg2)
+            return self.__perform_multiplication(reg1, reg2)
         elif operation == "/":
-            return LangTranslator.__perform_division(reg1, reg2)
+            return self.__perform_division(reg1, reg2)
         else:
-            return LangTranslator.__perform_modulo(reg1, reg2)
+            return self.__perform_modulo(reg1, reg2)
 
     @staticmethod
     def __perform_addition(reg1: str, reg2: str):
@@ -73,16 +76,25 @@ class LangTranslator:
         code = "SUB {} {}".format(reg1, reg2)
         return code
 
-    @staticmethod
-    def __perform_multiplication(reg1: str, reg2: str):
+    def __perform_multiplication(self, reg1: str, reg2: str):
+        helper_reg = self.register_machine.borrow_register()
+
+        code = self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
+        code += "\nRESET {}".format(reg1)
+        code += "\nJZERO {} 8".format(reg2)
+        code += "\nJODD {} 4".format(reg2)
+        code += "\nSHR {}".format(reg2)
+        code += "\nSHL {}".format(helper_reg)
+        code += "\nJUMP -4"
+        code += "\nADD {} {}".format(reg1, helper_reg)
+        code += "\nDEC {}".format(reg2)
+        code += "\nJUMP -7"
+        return code
+
+    def __perform_division(self, reg1: str, reg2: str):
         pass
 
-    @staticmethod
-    def __perform_division(reg1: str, reg2: str):
-        pass
-
-    @staticmethod
-    def __perform_modulo(reg1: str, reg2: str):
+    def __perform_modulo(self, reg1: str, reg2: str):
         pass
 
     def declare_variable(self, name):
