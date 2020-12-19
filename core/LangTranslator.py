@@ -17,7 +17,7 @@ class LangTranslator:
             return self.__generate_constant(val.core, register)
         else:
             code = self.__put_address_to_register(val.core, register, initialize)
-            code += "\n" + "LOAD {} {}".format(register, register)
+            code += "\nLOAD {} {}".format(register, register)
             return code
 
     def __put_address_to_register(self, idd: Identifier, register, initialize=False) -> str:
@@ -50,6 +50,41 @@ class LangTranslator:
         commands.append("RESET {}".format(register))
         return "\n".join(commands[::-1])
 
+    @staticmethod
+    def __perform_operation(reg1: str, reg2: str, operation: str):
+        if operation == "+":
+            return LangTranslator.__perform_addition(reg1, reg2)
+        elif operation == "-":
+            return LangTranslator.__perform_subtraction(reg1, reg2)
+        elif operation == "*":
+            return LangTranslator.__perform_multiplication(reg1, reg2)
+        elif operation == "/":
+            return LangTranslator.__perform_division(reg1, reg2)
+        else:
+            return LangTranslator.__perform_modulo(reg1, reg2)
+
+    @staticmethod
+    def __perform_addition(reg1: str, reg2: str):
+        code = "ADD {} {}".format(reg1, reg2)
+        return code
+
+    @staticmethod
+    def __perform_subtraction(reg1: str, reg2: str):
+        code = "SUB {} {}".format(reg1, reg2)
+        return code
+
+    @staticmethod
+    def __perform_multiplication(reg1: str, reg2: str):
+        pass
+
+    @staticmethod
+    def __perform_division(reg1: str, reg2: str):
+        pass
+
+    @staticmethod
+    def __perform_modulo(reg1: str, reg2: str):
+        pass
+
     def declare_variable(self, name):
         self.variable_table.add_variable(name)
 
@@ -60,14 +95,27 @@ class LangTranslator:
         if assigned_expression.is_value():
             return self.__assign_value(changed_identifier, assigned_expression.val1)
         else:
-            pass    # todo: implement handling operations (will probably split method)
+            return self.__assign_expression(changed_identifier, assigned_expression)
 
     def __assign_value(self, changed_identifier: Identifier, assigned_value: Value) -> str:
-        reg1 = self.register_machine.fetch_register()
-        reg2 = self.register_machine.fetch_register()
-        code = self.__put_value_to_register(assigned_value, register=reg1)
-        code += "\n" + self.__put_address_to_register(changed_identifier, register=reg2, initialize=True)
-        code += "\nSTORE {} {}".format(reg1, reg2)
+        value_reg = self.register_machine.fetch_register()
+        address_reg = self.register_machine.fetch_register()
+
+        code = self.__put_value_to_register(assigned_value, register=value_reg)
+        code += "\n" + self.__put_address_to_register(changed_identifier, register=address_reg, initialize=True)
+        code += "\nSTORE {} {}".format(value_reg, address_reg)
+        return code
+
+    def __assign_expression(self, changed_identifier: Identifier, assigned_expression: Expression) -> str:
+        address_reg = self.register_machine.fetch_register()
+        val1_reg = self.register_machine.fetch_register()
+        val2_reg = self.register_machine.fetch_register()
+
+        code = self.__put_address_to_register(changed_identifier, register=address_reg, initialize=True)
+        code += "\n" + self.__put_value_to_register(assigned_expression.val1, register=val1_reg)
+        code += "\n" + self.__put_value_to_register(assigned_expression.val2, register=val2_reg)
+        code += "\n" + self.__perform_operation(val1_reg, val2_reg, operation=assigned_expression.operation)
+        code += "\nSTORE {} {}".format(val1_reg, address_reg)
         return code
 
     def read(self, idd: Identifier) -> str:
