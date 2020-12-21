@@ -92,10 +92,83 @@ class LangTranslator:
         return code
 
     def __perform_division(self, reg1: str, reg2: str):
-        pass
+        check_reg, mult_reg, dividend_reg = self.register_machine.borrow_registers(3)
+
+        code = self.__copy_register(reg1, dividend_reg)
+        code += "\nRESET {}".format(reg1)
+        code += "\nJZERO {} 32".format(reg2)                    # END
+        code += "\nRESET {}".format(mult_reg)
+        code += "\nINC {}".format(mult_reg)
+        code += "\n" + self.__copy_register(reg2, check_reg)
+        code += "\nSUB {} {}".format(check_reg, dividend_reg)
+        code += "\nJZERO {} 2".format(check_reg)
+        code += "\nJUMP 25"                                     # END
+        code += "\nINC {}".format(reg1)
+        # beginning of 1st loop
+        code += "\nSHL {}".format(mult_reg)
+        code += "\nSHL {}".format(reg2)
+        code += "\n" + self.__copy_register(reg2, check_reg)
+        code += "\nSUB {} {}".format(check_reg, dividend_reg)
+        code += "\nJZERO {} 2".format(check_reg)
+        code += "\nJUMP 3"
+        code += "\nSHL {}".format(reg1)
+        code += "\nJUMP -8"
+        # end of the loop
+        code += "\nSHR {}".format(reg2)
+        code += "\nSHR {}".format(mult_reg)
+        code += "\nSUB {} {}".format(dividend_reg, reg2)
+        # beginning of 2nd loop
+        code += "\nSHR {}".format(mult_reg)
+        code += "\nJZERO {} 10".format(mult_reg)                 # END
+        code += "\nSHR {}".format(reg2)
+        code += "\n" + self.__copy_register(reg2, check_reg)
+        code += "\nSUB {} {}".format(check_reg, dividend_reg)
+        code += "\nJZERO {} 2".format(check_reg)
+        code += "\nJUMP -7"
+        code += "\nADD {} {}".format(reg1, mult_reg)
+        code += "\nSUB {} {}".format(dividend_reg, reg2)
+        code += "\nJUMP -10"
+        return code
 
     def __perform_modulo(self, reg1: str, reg2: str):
-        pass
+        check_reg, mult_reg, division_result_reg = self.register_machine.borrow_registers(3)
+
+        code = "RESET {}".format(division_result_reg)
+        code += "\nJZERO {} 33".format(reg2)  # END
+        code += "\nRESET {}".format(mult_reg)
+        code += "\nINC {}".format(mult_reg)
+        code += "\n" + self.__copy_register(reg2, check_reg)
+        code += "\nSUB {} {}".format(check_reg, reg1)
+        code += "\nJZERO {} 2".format(check_reg)
+        code += "\nJUMP 25"  # END
+        code += "\nINC {}".format(division_result_reg)
+        # beginning of 1st loop
+        code += "\nSHL {}".format(mult_reg)
+        code += "\nSHL {}".format(reg2)
+        code += "\n" + self.__copy_register(reg2, check_reg)
+        code += "\nSUB {} {}".format(check_reg, reg1)
+        code += "\nJZERO {} 2".format(check_reg)
+        code += "\nJUMP 3"
+        code += "\nSHL {}".format(division_result_reg)
+        code += "\nJUMP -8"
+        # end of the loop
+        code += "\nSHR {}".format(reg2)
+        code += "\nSHR {}".format(mult_reg)
+        code += "\nSUB {} {}".format(reg1, reg2)
+        # beginning of 2nd loop
+        code += "\nSHR {}".format(mult_reg)
+        code += "\nJZERO {} 10".format(mult_reg)  # END
+        code += "\nSHR {}".format(reg2)
+        code += "\n" + self.__copy_register(reg2, check_reg)
+        code += "\nSUB {} {}".format(check_reg, reg1)
+        code += "\nJZERO {} 2".format(check_reg)
+        code += "\nJUMP -7"
+        code += "\nADD {} {}".format(division_result_reg, mult_reg)
+        code += "\nSUB {} {}".format(reg1, reg2)
+        code += "\nJUMP -10"
+        code += "\nJUMP 2"
+        code += "\nRESET {}".format(reg1)
+        return code
 
     def declare_variable(self, name):
         self.variable_table.add_variable(name)
