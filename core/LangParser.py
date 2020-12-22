@@ -59,11 +59,11 @@ class LangParser(Parser):
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, t):
-        pass    # todo
+        return self.lang_translator.if_then_else(t[1], t[3], t[5])
 
     @_('IF condition THEN commands ENDIF')
     def command(self, t):
-        pass    # todo
+        return self.lang_translator.if_then(t[1], t[3])
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, t):

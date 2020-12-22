@@ -12,6 +12,10 @@ class LangTranslator:
         self.variable_table = LangVariableTable()
         self.register_machine = LangRegisterMachine()
 
+    @staticmethod
+    def __line_count(text: str) -> int:
+        return text.count("\n") + 1
+
     def __put_value_to_register(self, val: Value, register, initialize=False) -> str:
         if val.is_int():
             return self.__generate_constant(val.core, register)
@@ -171,15 +175,15 @@ class LangTranslator:
         return code
 
     def __perform_comparison(self, reg1: str, reg2: str, comparison: str):
-        if comparison == "EQ":
+        if comparison == "=":
             return self.__perform_equality(reg1, reg2)
-        elif comparison == "NEQ":
+        elif comparison == "!=":
             return self.__perform_inequality(reg1, reg2)
-        elif comparison == "LT":
+        elif comparison == "<":
             return self.__perform_less(reg1, reg2)
-        elif comparison == "GT":
+        elif comparison == ">":
             return self.__perform_more(reg1, reg2)
-        elif comparison == "LEQ":
+        elif comparison == "<=":
             return self.__perform_less_equal(reg1, reg2)
         else:
             return self.__perform_more_equal(reg1, reg2)
@@ -187,7 +191,7 @@ class LangTranslator:
     def __perform_equality(self, reg1: str, reg2: str):
         condition_reg = self.register_machine.borrow_register()
         code = self.__copy_register(reg1, condition_reg)
-        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nSUB {} {}".format(condition_reg, reg2)
         code += "\nJZERO {} 2".format(condition_reg)
         code += "\nJUMP 5"
         code += "\n" + self.__copy_register(reg2, condition_reg)
@@ -199,9 +203,9 @@ class LangTranslator:
     def __perform_inequality(self, reg1: str, reg2: str):
         condition_reg = self.register_machine.borrow_register()
         code = self.__copy_register(reg1, condition_reg)
-        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nSUB {} {}".format(condition_reg, reg2)
         code += "\nJZERO {} 2".format(condition_reg)
-        code += "\nJUMP 6"
+        code += "\nJUMP 7"
         code += "\n" + self.__copy_register(reg2, condition_reg)
         code += "\nSUB {} {}".format(condition_reg, reg1)
         code += "\nJZERO {} 2".format(condition_reg)
@@ -212,21 +216,21 @@ class LangTranslator:
     def __perform_less(self, reg1: str, reg2: str):
         condition_reg = self.register_machine.borrow_register()
         code = self.__copy_register(reg2, condition_reg)
-        code += "SUB {} {}".format(condition_reg, reg1)
+        code += "\nSUB {} {}".format(condition_reg, reg1)
         code += "\nJZERO {}".format(condition_reg) + " {}"
         return code
 
     def __perform_more(self, reg1: str, reg2: str):
         condition_reg = self.register_machine.borrow_register()
         code = self.__copy_register(reg1, condition_reg)
-        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nSUB {} {}".format(condition_reg, reg2)
         code += "\nJZERO {}".format(condition_reg) + " {}"
         return code
 
     def __perform_less_equal(self, reg1: str, reg2: str):
         condition_reg = self.register_machine.borrow_register()
         code = self.__copy_register(reg1, condition_reg)
-        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nSUB {} {}".format(condition_reg, reg2)
         code += "\nJZERO {} 2".format(condition_reg)
         code += "\nJUMP {}"
         return code
@@ -234,7 +238,7 @@ class LangTranslator:
     def __perform_more_equal(self, reg1: str, reg2: str):
         condition_reg = self.register_machine.borrow_register()
         code = self.__copy_register(reg2, condition_reg)
-        code += "SUB {} {}".format(condition_reg, reg1)
+        code += "\nSUB {} {}".format(condition_reg, reg1)
         code += "\nJZERO {} 2".format(condition_reg)
         code += "\nJUMP {}"
         return code
@@ -270,6 +274,30 @@ class LangTranslator:
         code += "\n" + self.__put_value_to_register(assigned_expression.val2, register=val2_reg)
         code += "\n" + self.__perform_operation(val1_reg, val2_reg, operation=assigned_expression.operation)
         code += "\nSTORE {} {}".format(val1_reg, address_reg)
+        return code
+
+    def if_then_else(self, condition: Condition, positive_commands: str, negative_commands: str) -> str:
+        val1_reg = self.register_machine.fetch_register()
+        val2_reg = self.register_machine.fetch_register()
+
+        code = self.__put_value_to_register(condition.val1, register=val1_reg)
+        code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
+        code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
+            self.__line_count(positive_commands) + 2)
+        code += "\n" + positive_commands
+        code += "\nJUMP {}".format(self.__line_count(negative_commands) + 1)
+        code += "\n" + negative_commands
+        return code
+
+    def if_then(self, condition: Condition, commands: str) -> str:
+        val1_reg = self.register_machine.fetch_register()
+        val2_reg = self.register_machine.fetch_register()
+
+        code = self.__put_value_to_register(condition.val1, register=val1_reg)
+        code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
+        code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
+            self.__line_count(commands) + 1)
+        code += "\n" + commands
         return code
 
     def read(self, idd: Identifier) -> str:
