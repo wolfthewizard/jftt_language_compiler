@@ -300,6 +300,30 @@ class LangTranslator:
         code += "\n" + commands
         return code
 
+    def while_do(self, condition: Condition, commands: str) -> str:
+        val1_reg = self.register_machine.fetch_register()
+        val2_reg = self.register_machine.fetch_register()
+
+        code = self.__put_value_to_register(condition.val1, register=val1_reg)
+        code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
+        code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
+            self.__line_count(commands) + 2)
+        code += "\n" + commands
+        code += "\nJUMP {}".format(-self.__line_count(code))
+        return code
+
+    def repeat_until(self, commands: str, condition: Condition) -> str:
+        val1_reg = self.register_machine.fetch_register()
+        val2_reg = self.register_machine.fetch_register()
+
+        code = commands
+        code += "\n" + self.__put_value_to_register(condition.val1, register=val1_reg)
+        code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
+        code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(2)
+        code += "\nJUMP 2"
+        code += "\nJUMP {}".format(-self.__line_count(code))
+        return code
+
     def read(self, idd: Identifier) -> str:
         reg = self.register_machine.fetch_register()
         code = self.__put_address_to_register(idd, register=reg, initialize=True)

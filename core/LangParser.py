@@ -67,11 +67,11 @@ class LangParser(Parser):
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, t):
-        pass    # todo
+        return self.lang_translator.while_do(t[1], t[3])
 
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, t):
-        pass    # todo
+        return self.lang_translator.repeat_until(t[1], t[3])
 
     @_('FOR ID FROM value TO value DO commands ENDFOR')
     def command(self, t):
