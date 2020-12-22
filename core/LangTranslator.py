@@ -170,6 +170,75 @@ class LangTranslator:
         code += "\nRESET {}".format(reg1)
         return code
 
+    def __perform_comparison(self, reg1: str, reg2: str, comparison: str):
+        if comparison == "EQ":
+            return self.__perform_equality(reg1, reg2)
+        elif comparison == "NEQ":
+            return self.__perform_inequality(reg1, reg2)
+        elif comparison == "LT":
+            return self.__perform_less(reg1, reg2)
+        elif comparison == "GT":
+            return self.__perform_more(reg1, reg2)
+        elif comparison == "LEQ":
+            return self.__perform_less_equal(reg1, reg2)
+        else:
+            return self.__perform_more_equal(reg1, reg2)
+
+    def __perform_equality(self, reg1: str, reg2: str):
+        condition_reg = self.register_machine.borrow_register()
+        code = self.__copy_register(reg1, condition_reg)
+        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nJZERO {} 2".format(condition_reg)
+        code += "\nJUMP 5"
+        code += "\n" + self.__copy_register(reg2, condition_reg)
+        code += "\nSUB {} {}".format(condition_reg, reg1)
+        code += "\nJZERO {} 2".format(condition_reg)
+        code += "\nJUMP {}"
+        return code
+
+    def __perform_inequality(self, reg1: str, reg2: str):
+        condition_reg = self.register_machine.borrow_register()
+        code = self.__copy_register(reg1, condition_reg)
+        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nJZERO {} 2".format(condition_reg)
+        code += "\nJUMP 6"
+        code += "\n" + self.__copy_register(reg2, condition_reg)
+        code += "\nSUB {} {}".format(condition_reg, reg1)
+        code += "\nJZERO {} 2".format(condition_reg)
+        code += "\nJUMP 2"
+        code += "\nJUMP {}"
+        return code
+
+    def __perform_less(self, reg1: str, reg2: str):
+        condition_reg = self.register_machine.borrow_register()
+        code = self.__copy_register(reg2, condition_reg)
+        code += "SUB {} {}".format(condition_reg, reg1)
+        code += "\nJZERO {}".format(condition_reg) + " {}"
+        return code
+
+    def __perform_more(self, reg1: str, reg2: str):
+        condition_reg = self.register_machine.borrow_register()
+        code = self.__copy_register(reg1, condition_reg)
+        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nJZERO {}".format(condition_reg) + " {}"
+        return code
+
+    def __perform_less_equal(self, reg1: str, reg2: str):
+        condition_reg = self.register_machine.borrow_register()
+        code = self.__copy_register(reg1, condition_reg)
+        code += "SUB {} {}".format(condition_reg, reg2)
+        code += "\nJZERO {} 2".format(condition_reg)
+        code += "\nJUMP {}"
+        return code
+
+    def __perform_more_equal(self, reg1: str, reg2: str):
+        condition_reg = self.register_machine.borrow_register()
+        code = self.__copy_register(reg2, condition_reg)
+        code += "SUB {} {}".format(condition_reg, reg1)
+        code += "\nJZERO {} 2".format(condition_reg)
+        code += "\nJUMP {}"
+        return code
+
     def declare_variable(self, name):
         self.variable_table.add_variable(name)
 
