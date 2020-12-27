@@ -9,7 +9,7 @@ class Expression:
         self.operation = operation
 
     def __str__(self):
-        return "<{} {} {}>".format(self.val1, self.operation, self.val2)
+        return "{} {} {}".format(self.val1, self.operation, self.val2)
 
     def __repr__(self):
         return str(self)

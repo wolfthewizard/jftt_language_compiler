@@ -1,5 +1,6 @@
 from core.LangLexer import LangLexer
 from core.LangParser import LangParser
+from core.LangTranslator import LangTranslator
 import sys
 
 
@@ -23,8 +24,11 @@ The compiler will compile source code from source_file into assembly form and pu
 
     lexer = LangLexer()
     parser = LangParser()
+    translator = LangTranslator()
 
-    assembly = parser.parse(lexer.tokenize(source))
+    tokens = lexer.tokenize(source)
+    program = parser.parse(tokens)
+    assembly = translator.translate_program(program)
 
     with open(argv[2], "w") as f:
         f.write(assembly)

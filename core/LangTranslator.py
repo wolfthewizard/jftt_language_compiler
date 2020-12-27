@@ -1,9 +1,21 @@
 from core.LangVariableTable import LangVariableTable
 from core.LangRegisterMachine import LangRegisterMachine
+from model.internal.LangProgram import LangProgram
 from model.nonterminals.Expression import Expression
 from model.nonterminals.Value import Value
 from model.nonterminals.Identifier import Identifier
 from model.nonterminals.Condition import Condition
+from model.commands.Assign import Assign
+from model.commands.DeclareVariable import DeclareVariable
+from model.commands.DeclareArray import DeclareArray
+from model.commands.ForDownto import ForDownto
+from model.commands.ForTo import ForTo
+from model.commands.If import If
+from model.commands.IfElse import IfElse
+from model.commands.Read import Read
+from model.commands.RepeatUntil import RepeatUntil
+from model.commands.While import While
+from model.commands.Write import Write
 
 
 class LangTranslator:
@@ -11,6 +23,42 @@ class LangTranslator:
     def __init__(self):
         self.variable_table = LangVariableTable()
         self.register_machine = LangRegisterMachine()
+
+    def translate_program(self, program: LangProgram):
+        for declaration in program.declarations:
+            self.declare(declaration)
+        code = self.generate_code(program.commands)
+        code += "\nHALT"
+        return code
+
+    def declare(self, declaration):
+        if type(declaration) == DeclareVariable:
+            self.declare_variable(declaration.name)
+        else:
+            self.declare_array(declaration.name, declaration.first, declaration.last)
+
+    def generate_code(self, commands: list) -> str:
+        command_codes = []
+        for command in commands:
+            command_codes.append(self.unwrap_command(command))
+        code = "\n".join(command_codes)
+        return code
+
+    def unwrap_command(self, command) -> str:
+        if type(command) == Assign:
+            return self.assign(command.changed_identifier, command.assigned_expression)
+        elif type(command) == If:
+            return self.if_then(command.condition, command.commands)
+        elif type(command) == IfElse:
+            return self.if_then_else(command.condition, command.positive_commands, command.negative_commands)
+        elif type(command) == While:
+            return self.while_do(command.condition, command.commands)
+        elif type(command) == RepeatUntil:
+            return self.repeat_until(command.commands, command.condition)
+        elif type(command) == Read:
+            return self.read(command.idd)
+        else:
+            return self.write(command.value)
 
     @staticmethod
     def __line_count(text: str) -> int:
@@ -276,47 +324,52 @@ class LangTranslator:
         code += "\nSTORE {} {}".format(val1_reg, address_reg)
         return code
 
-    def if_then_else(self, condition: Condition, positive_commands: str, negative_commands: str) -> str:
+    def if_then_else(self, condition: Condition, positive_commands: list, negative_commands: list) -> str:
+        positive_commands_code = self.generate_code(positive_commands)
+        negative_commands_code = self.generate_code(negative_commands)
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
         code = self.__put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
-            self.__line_count(positive_commands) + 2)
-        code += "\n" + positive_commands
-        code += "\nJUMP {}".format(self.__line_count(negative_commands) + 1)
-        code += "\n" + negative_commands
+            self.__line_count(positive_commands_code) + 2)
+        code += "\n" + positive_commands_code
+        code += "\nJUMP {}".format(self.__line_count(negative_commands_code) + 1)
+        code += "\n" + negative_commands_code
         return code
 
-    def if_then(self, condition: Condition, commands: str) -> str:
+    def if_then(self, condition: Condition, commands: list) -> str:
+        commands_code = self.generate_code(commands)
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
         code = self.__put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
-            self.__line_count(commands) + 1)
-        code += "\n" + commands
+            self.__line_count(commands_code) + 1)
+        code += "\n" + commands_code
         return code
 
-    def while_do(self, condition: Condition, commands: str) -> str:
+    def while_do(self, condition: Condition, commands: list) -> str:
+        commands_code = self.generate_code(commands)
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
         code = self.__put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
-            self.__line_count(commands) + 2)
-        code += "\n" + commands
+            self.__line_count(commands_code) + 2)
+        code += "\n" + commands_code
         code += "\nJUMP {}".format(-self.__line_count(code))
         return code
 
-    def repeat_until(self, commands: str, condition: Condition) -> str:
+    def repeat_until(self, commands: list, condition: Condition) -> str:
+        commands_code = self.generate_code(commands)
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
-        code = commands
+        code = commands_code
         code += "\n" + self.__put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(2)
