@@ -51,7 +51,11 @@ class LangLexer(Lexer):
         ",", "(", ")", ":", ";"
     )
 
-    ignore = " \t\n"
+    ignore = " \t"
+
+    @_(r'\n')
+    def line_count(self, t):
+        self.lineno += t.value.count("\n")
 
     @_(r'\[[^\[\]]*\]')
     def comment(self, t):
@@ -61,6 +65,10 @@ class LangLexer(Lexer):
     def NUM(self, t):
         t.value = int(t.value)
         return t
+
+    def error(self, t):
+        print("error at line {}: bad character - {}".format(self.lineno, t.value[0]))
+        exit(1)
 
 
 def test():

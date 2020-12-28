@@ -13,13 +13,13 @@ class LangArray:
         self.__address = adr
         self.__bias = first
         self.__length = last - first + 1
-        self.__initialized = False
+        self.__initialized = True
 
     def get_address(self, offset=None):
         if not self.__initialized:
             raise VariableUnitilializedError
         elif offset is None:
-            raise InvalidReferenceError("Array is not a variable.")
+            raise InvalidReferenceError
         elif offset - self.__bias >= self.__length:
             raise ArrayOutOfBoundsError
         else:

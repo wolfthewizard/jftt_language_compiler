@@ -2,6 +2,7 @@ from core.LangLexer import LangLexer
 from core.LangParser import LangParser
 from core.LangTranslator import LangTranslator
 import sys
+from model.errors import CodeException
 
 
 def main(argv):
@@ -28,7 +29,11 @@ The compiler will compile source code from source_file into assembly form and pu
 
     tokens = lexer.tokenize(source)
     program = parser.parse(tokens)
-    assembly = translator.translate_program(program)
+    try:
+        assembly = translator.translate_program(program)
+    except CodeException as e:
+        print(e)
+        exit(1)
 
     with open(argv[2], "w") as f:
         f.write(assembly)

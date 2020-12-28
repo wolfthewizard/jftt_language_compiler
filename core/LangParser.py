@@ -36,23 +36,27 @@ class LangParser(Parser):
     def program(self, t):
         return LangProgram([], t[1])
 
+    def error(self, t):
+        print("syntax error at line {}".format(t.lineno))
+        exit(1)
+
     @_('declarations "," ID')
     def declarations(self, t):
-        t[0].append(DeclareVariable(t[2]))
+        t[0].append(DeclareVariable(t[2], t.lineno))
         return t[0]
 
     @_('declarations "," ID "(" NUM ":" NUM ")"')
     def declarations(self, t):
-        t[0].append(DeclareArray(t[2], t[4], t[6]))
+        t[0].append(DeclareArray(t[2], t[4], t[6], t.lineno))
         return t[0]
 
     @_('ID')
     def declarations(self, t):
-        return [DeclareVariable(t[0])]
+        return [DeclareVariable(t[0], t.lineno)]
 
     @_('ID "(" NUM ":" NUM ")"')
     def declarations(self, t):
-        return [DeclareArray(t[0], t[2], t[4])]
+        return [DeclareArray(t[0], t[2], t[4], t.lineno)]
 
     @_('commands command')
     def commands(self, t):
@@ -65,39 +69,39 @@ class LangParser(Parser):
 
     @_('identifier ASGN expression ";"')
     def command(self, t):
-        return Assign(t[0], t[2])
+        return Assign(t[0], t[2], t.lineno)
 
     @_('IF condition THEN commands ELSE commands ENDIF')
     def command(self, t):
-        return IfElse(t[1], t[3], t[5])
+        return IfElse(t[1], t[3], t[5], t.lineno)
 
     @_('IF condition THEN commands ENDIF')
     def command(self, t):
-        return If(t[1], t[3])
+        return If(t[1], t[3], t.lineno)
 
     @_('WHILE condition DO commands ENDWHILE')
     def command(self, t):
-        return While(t[1], t[3])
+        return While(t[1], t[3], t.lineno)
 
     @_('REPEAT commands UNTIL condition ";"')
     def command(self, t):
-        return RepeatUntil(t[1], t[3])
+        return RepeatUntil(t[1], t[3], t.lineno)
 
     @_('FOR ID FROM value TO value DO commands ENDFOR')
     def command(self, t):
-        return ForTo(t[1], t[3], t[5], t[7])
+        return ForTo(t[1], t[3], t[5], t[7], t.lineno)
 
     @_('FOR ID FROM value DOWNTO value DO commands ENDFOR')
     def command(self, t):
-        return ForDownto(t[1], t[3], t[5], t[7])
+        return ForDownto(t[1], t[3], t[5], t[7], t.lineno)
 
     @_('READ identifier ";"')
     def command(self, t):
-        return Read(t[1])
+        return Read(t[1], t.lineno)
 
     @_('WRITE value ";"')
     def command(self, t):
-        return Write(t[1])
+        return Write(t[1], t.lineno)
 
     @_('value')
     def expression(self, t):

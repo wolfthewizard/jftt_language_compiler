@@ -8,10 +8,10 @@ class LangInt:
         self.__initialized = False
 
     def get_address(self, offset=None):
-        if not self.__initialized:
+        if offset is not None:
+            raise InvalidReferenceError
+        elif not self.__initialized:
             raise VariableUnitilializedError
-        elif offset is not None:
-            raise InvalidReferenceError("Variable is not an array.")
         else:
             return self.__address
 

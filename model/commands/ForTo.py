@@ -3,7 +3,8 @@ from model.nonterminals.Value import Value
 
 class ForTo:
 
-    def __init__(self, idd: str, from_value: Value, to_value: Value, commands: list):
+    def __init__(self, idd: str, from_value: Value, to_value: Value, commands: list, lineno: int = None):
+        self.lineno = lineno
         self.idd = idd
         self.from_value = from_value
         self.to_value = to_value

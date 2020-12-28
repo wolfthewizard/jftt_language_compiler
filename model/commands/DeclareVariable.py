@@ -1,6 +1,7 @@
 class DeclareVariable:
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, lineno: int = None):
+        self.lineno = lineno
         self.name = name
 
     def __str__(self):

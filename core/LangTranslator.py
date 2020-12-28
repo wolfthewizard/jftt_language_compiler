@@ -16,6 +16,7 @@ from model.commands.Read import Read
 from model.commands.RepeatUntil import RepeatUntil
 from model.commands.While import While
 from model.commands.Write import Write
+from model.errors import *
 
 
 class LangTranslator:
@@ -32,10 +33,13 @@ class LangTranslator:
         return code
 
     def declare(self, declaration):
-        if type(declaration) == DeclareVariable:
-            self.declare_variable(declaration.name)
-        else:
-            self.declare_array(declaration.name, declaration.first, declaration.last)
+        try:
+            if type(declaration) == DeclareVariable:
+                self.declare_variable(declaration.name)
+            else:
+                self.declare_array(declaration.name, declaration.first, declaration.last)
+        except CodeException as e:
+            raise type(e)(e.args[0].format(declaration.lineno))
 
     def generate_code(self, commands: list) -> str:
         command_codes = []
@@ -45,24 +49,27 @@ class LangTranslator:
         return code
 
     def unwrap_command(self, command) -> str:
-        if type(command) == Assign:
-            return self.assign(command.changed_identifier, command.assigned_expression)
-        elif type(command) == If:
-            return self.if_then(command.condition, command.commands)
-        elif type(command) == IfElse:
-            return self.if_then_else(command.condition, command.positive_commands, command.negative_commands)
-        elif type(command) == While:
-            return self.while_do(command.condition, command.commands)
-        elif type(command) == RepeatUntil:
-            return self.repeat_until(command.commands, command.condition)
-        elif type(command) == ForTo:
-            return self.for_to(command.idd, command.from_value, command.to_value, command.commands)
-        elif type(command) == ForDownto:
-            return self.for_downto(command.idd, command.from_value, command.downto_value, command.commands)
-        elif type(command) == Read:
-            return self.read(command.idd)
-        else:
-            return self.write(command.value)
+        try:
+            if type(command) == Assign:
+                return self.assign(command.changed_identifier, command.assigned_expression)
+            elif type(command) == If:
+                return self.if_then(command.condition, command.commands)
+            elif type(command) == IfElse:
+                return self.if_then_else(command.condition, command.positive_commands, command.negative_commands)
+            elif type(command) == While:
+                return self.while_do(command.condition, command.commands)
+            elif type(command) == RepeatUntil:
+                return self.repeat_until(command.commands, command.condition)
+            elif type(command) == ForTo:
+                return self.for_to(command.idd, command.from_value, command.to_value, command.commands)
+            elif type(command) == ForDownto:
+                return self.for_downto(command.idd, command.from_value, command.downto_value, command.commands)
+            elif type(command) == Read:
+                return self.read(command.idd)
+            else:
+                return self.write(command.value)
+        except CodeException as e:
+            raise type(e)(e.args[0].format(command.lineno))
 
     @staticmethod
     def __line_count(text: str) -> int:
@@ -302,10 +309,13 @@ class LangTranslator:
         self.variable_table.add_array(name, first, last)
 
     def assign(self, changed_identifier: Identifier, assigned_expression: Expression) -> str:
+        # try:
         if assigned_expression.is_value():
             return self.__assign_value(changed_identifier, assigned_expression.val1)
         else:
             return self.__assign_expression(changed_identifier, assigned_expression)
+        # except CodeException as e:
+        #     raise type(e)(e.args[0].format(lineno))
 
     def __assign_value(self, changed_identifier: Identifier, assigned_value: Value) -> str:
         value_reg = self.register_machine.fetch_register()

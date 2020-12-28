@@ -3,7 +3,8 @@ from model.nonterminals.Identifier import Identifier
 
 class Read:
 
-    def __init__(self, idd: Identifier):
+    def __init__(self, idd: Identifier, lineno: int = None):
+        self.lineno = lineno
         self.idd = idd
 
     def __str__(self):

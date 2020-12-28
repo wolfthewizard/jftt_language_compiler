@@ -3,7 +3,8 @@ from model.nonterminals.Condition import Condition
 
 class If:
 
-    def __init__(self, condition: Condition, commands: list):
+    def __init__(self, condition: Condition, commands: list, lineno: int = None):
+        self.lineno = lineno
         self.condition = condition
         self.commands = commands
 

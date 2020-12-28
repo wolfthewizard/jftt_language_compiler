@@ -1,6 +1,7 @@
 class DeclareArray:
 
-    def __init__(self, name: str, first: int, last: int):
+    def __init__(self, name: str, first: int, last: int, lineno: int = None):
+        self.lineno = lineno
         self.name = name
         self.first = first
         self.last = last

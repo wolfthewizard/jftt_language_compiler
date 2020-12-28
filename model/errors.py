@@ -1,33 +1,56 @@
-class VariableUnitilializedError(Exception):
+class CodeException(Exception):
     pass
 
 
-class NegativeValueError(Exception):
-    pass
+class VariableUnitilializedError(CodeException):
+
+    def __init__(self, msg="error: variable uninitialized at line {}"):
+        super().__init__(msg)
 
 
-class InvalidRangeError(Exception):
-    pass
+class NegativeValueError(CodeException):
+
+    def __init__(self, msg="error: negative value at line {}"):
+        super().__init__(msg)
 
 
-class InvalidReferenceError(Exception):
-    pass
+class InvalidRangeError(CodeException):
+
+    def __init__(self, msg="error: invalid array range at line {}"):
+        super().__init__(msg)
 
 
-class SecondInitializationError(Exception):
-    pass
+class InvalidReferenceError(CodeException):
+
+    def __init__(self, msg="error: wrong variable/array reference at line {}"):
+        super().__init__(msg)
 
 
-class ArrayOutOfBoundsError(Exception):
-    pass
+class SecondInitializationError(CodeException):
+
+    def __init__(self, msg="error: second address assignment at line {}"):
+        super().__init__(msg)
 
 
-class VariableUndeclaredError(Exception):
-    pass
+class ArrayOutOfBoundsError(CodeException):
+
+    def __init__(self, msg="error: array out of bounds at line {}"):
+        super().__init__(msg)
 
 
-class SecondDeclarationError(Exception):
-    pass
+class VariableUndeclaredError(CodeException):
 
-class IteratorAssignmentError(Exception):
-    pass
+    def __init__(self, msg="error: undeclared variable at line {}"):
+        super().__init__(msg)
+
+
+class SecondDeclarationError(CodeException):
+
+    def __init__(self, msg="error: second declaration at line {}"):
+        super().__init__(msg)
+
+
+class IteratorAssignmentError(CodeException):
+
+    def __init__(self, msg="error: iterator assignment at line {}"):
+        super().__init__(msg)
