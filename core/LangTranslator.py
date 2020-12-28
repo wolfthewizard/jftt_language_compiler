@@ -55,6 +55,10 @@ class LangTranslator:
             return self.while_do(command.condition, command.commands)
         elif type(command) == RepeatUntil:
             return self.repeat_until(command.commands, command.condition)
+        elif type(command) == ForTo:
+            return self.for_to(command.idd, command.from_value, command.to_value, command.commands)
+        elif type(command) == ForDownto:
+            return self.for_downto(command.idd, command.from_value, command.downto_value, command.commands)
         elif type(command) == Read:
             return self.read(command.idd)
         else:
@@ -352,10 +356,10 @@ class LangTranslator:
         return code
 
     def while_do(self, condition: Condition, commands: list) -> str:
-        commands_code = self.generate_code(commands)
-        val1_reg = self.register_machine.fetch_register()
-        val2_reg = self.register_machine.fetch_register()
-
+        commands_code = self.generate_code(commands)        # code has to be generated before fetching registers
+        val1_reg = self.register_machine.fetch_register()   # because condition check requires registers to be freshly
+        val2_reg = self.register_machine.fetch_register()   # fetched; in other case borrowed register inside check
+                                                            # may be one of assigned registers
         code = self.__put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(
@@ -376,6 +380,73 @@ class LangTranslator:
         code += "\nJUMP 2"
         code += "\nJUMP {}".format(-self.__line_count(code))
         return code
+
+    def for_to(self, idd: str, from_value: Value, to_value: Value, commands: list):
+        counter = self.variable_table.fetch_random_variable()
+        self.variable_table.add_iterator(idd)
+        commands_code = self.generate_code(commands)
+        iterator_reg = self.register_machine.fetch_register()
+        counter_reg = self.register_machine.fetch_register()
+        temp_reg = self.register_machine.borrow_register()
+
+        pre_run_code = self.__put_value_to_register(from_value, iterator_reg)
+        pre_run_code += "\n" + self.__put_address_to_register(Identifier(idd), temp_reg)
+        pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
+        pre_run_code += "\n" + self.__put_value_to_register(to_value, counter_reg)
+        pre_run_code += "\nINC {}".format(counter_reg)
+        pre_run_code += "\nSUB {} {}".format(counter_reg, iterator_reg)
+        pre_run_code += "\n" + self.__put_address_to_register(Identifier(counter), temp_reg, initialize=True)
+
+        code = "JZERO {}".format(counter_reg) + " {}"
+        code += "\nSTORE {} {}".format(counter_reg, temp_reg)
+        code += "\n" + commands_code
+        code += "\n" + self.__generate_constant(self.variable_table.get_address(idd), temp_reg)
+        code += "\nLOAD {} {}".format(iterator_reg, temp_reg)
+        code += "\nINC {}".format(iterator_reg)
+        code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
+        code += "\n" + self.__put_address_to_register(Identifier(counter), temp_reg)
+        code += "\nLOAD {} {}".format(counter_reg, temp_reg)
+        code += "\nDEC {}".format(counter_reg)
+        code += "\nJUMP {}".format(-self.__line_count(code))
+        code = code.format(self.__line_count(code))
+
+        self.variable_table.remove_iterator(idd)
+        self.variable_table.remove_variable(counter)
+        return pre_run_code + "\n" + code
+
+    def for_downto(self, idd: str, from_value: Value, downto_value: Value, commands: list):
+        counter = self.variable_table.fetch_random_variable()
+        self.variable_table.add_iterator(idd)
+        commands_code = self.generate_code(commands)
+        iterator_reg = self.register_machine.fetch_register()
+        counter_reg = self.register_machine.fetch_register()
+        temp_reg = self.register_machine.borrow_register()
+
+        pre_run_code = self.__put_value_to_register(from_value, iterator_reg)
+        pre_run_code += "\n" + self.__put_address_to_register(Identifier(idd), temp_reg)
+        pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
+        pre_run_code += "\n" + self.__copy_register(iterator_reg, counter_reg)
+        pre_run_code += "\nINC {}".format(counter_reg)
+        pre_run_code += "\n" + self.__put_value_to_register(downto_value, temp_reg)
+        pre_run_code += "\nSUB {} {}".format(counter_reg, temp_reg)
+        pre_run_code += "\n" + self.__put_address_to_register(Identifier(counter), temp_reg, initialize=True)
+
+        code = "JZERO {}".format(counter_reg) + " {}"
+        code += "\nSTORE {} {}".format(counter_reg, temp_reg)
+        code += "\n" + commands_code
+        code += "\n" + self.__generate_constant(self.variable_table.get_address(idd), temp_reg)
+        code += "\nLOAD {} {}".format(iterator_reg, temp_reg)
+        code += "\nDEC {}".format(iterator_reg)
+        code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
+        code += "\n" + self.__put_address_to_register(Identifier(counter), temp_reg)
+        code += "\nLOAD {} {}".format(counter_reg, temp_reg)
+        code += "\nDEC {}".format(counter_reg)
+        code += "\nJUMP {}".format(-self.__line_count(code))
+        code = code.format(self.__line_count(code))
+
+        self.variable_table.remove_iterator(idd)
+        self.variable_table.remove_variable(counter)
+        return pre_run_code + "\n" + code
 
     def read(self, idd: Identifier) -> str:
         reg = self.register_machine.fetch_register()

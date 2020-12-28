@@ -34,7 +34,7 @@ class LangParser(Parser):
 
     @_('BEGIN commands END')
     def program(self, t):
-        return LangProgram(t[1], [])
+        return LangProgram([], t[1])
 
     @_('declarations "," ID')
     def declarations(self, t):
@@ -85,11 +85,11 @@ class LangParser(Parser):
 
     @_('FOR ID FROM value TO value DO commands ENDFOR')
     def command(self, t):
-        pass    # todo
+        return ForTo(t[1], t[3], t[5], t[7])
 
     @_('FOR ID FROM value DOWNTO value DO commands ENDFOR')
     def command(self, t):
-        pass    # todo
+        return ForDownto(t[1], t[3], t[5], t[7])
 
     @_('READ identifier ";"')
     def command(self, t):

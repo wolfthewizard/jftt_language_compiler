@@ -28,3 +28,6 @@ class VariableUndeclaredError(Exception):
 
 class SecondDeclarationError(Exception):
     pass
+
+class IteratorAssignmentError(Exception):
+    pass
