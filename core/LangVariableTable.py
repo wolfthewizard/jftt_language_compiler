@@ -39,7 +39,7 @@ class LangVariableTable:
 
     def fetch_random_variable(self):
         name = random.choice(LangVariableTable.alphabet)
-        while name in self.__table.keys():
+        while name in self.__table.keys() or name in self.__stack:
             name += random.choice(LangVariableTable.alphabet)
         var = LangInt(self.__marker)
         self.__marker += 1

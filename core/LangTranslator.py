@@ -392,8 +392,8 @@ class LangTranslator:
         return code
 
     def for_to(self, idd: str, from_value: Value, to_value: Value, commands: list):
-        counter = self.variable_table.fetch_random_variable()
         self.variable_table.add_iterator(idd)
+        counter = self.variable_table.fetch_random_variable()
         commands_code = self.generate_code(commands)
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
@@ -420,13 +420,13 @@ class LangTranslator:
         code += "\nJUMP {}".format(-self.__line_count(code))
         code = code.format(self.__line_count(code))
 
-        self.variable_table.remove_iterator(idd)
         self.variable_table.remove_variable(counter)
+        self.variable_table.remove_iterator(idd)
         return pre_run_code + "\n" + code
 
     def for_downto(self, idd: str, from_value: Value, downto_value: Value, commands: list):
-        counter = self.variable_table.fetch_random_variable()
         self.variable_table.add_iterator(idd)
+        counter = self.variable_table.fetch_random_variable()
         commands_code = self.generate_code(commands)
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()

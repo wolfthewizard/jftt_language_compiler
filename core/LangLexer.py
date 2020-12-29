@@ -55,11 +55,11 @@ class LangLexer(Lexer):
 
     @_(r'\n')
     def line_count(self, t):
-        self.lineno += t.value.count("\n")
+        self.lineno += 1
 
     @_(r'\[[^\[\]]*\]')
     def comment(self, t):
-        pass
+        self.lineno += t.value.count("\n")
 
     @_(r'[0-9]+')
     def NUM(self, t):
