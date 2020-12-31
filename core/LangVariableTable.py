@@ -50,9 +50,9 @@ class LangVariableTable:
         self.__marker -= 1
         del self.__table[name]
 
-    def get_address(self, name, offset=None, initialize=False):
+    def get_address(self, name, offset=None, initialize=False, ignore_iterators=False):
         try:
-            if name in self.__stack:
+            if not ignore_iterators and name in self.__stack:
                 var = self.__stack.get(name)
                 if initialize:
                     raise IteratorAssignmentError
