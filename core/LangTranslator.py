@@ -75,22 +75,22 @@ class LangTranslator:
     def __line_count(text: str) -> int:
         return text.count("\n") + 1
 
-    def __put_value_to_register(self, val: Value, register, initialize=False, ignore_iterators=False) -> str:
+    def __put_value_to_register(self, val: Value, register, initialize=False, ignore_iterator=None) -> str:
         if val.is_int():
             return self.__generate_constant(val.core, register)
         else:
-            code = self.__put_address_to_register(val.core, register, initialize, ignore_iterators)
+            code = self.__put_address_to_register(val.core, register, initialize, ignore_iterator)
             code += "\nLOAD {} {}".format(register, register)
             return code
 
-    def __put_address_to_register(self, idd: Identifier, register, initialize=False, ignore_iterators=False) -> str:
+    def __put_address_to_register(self, idd: Identifier, register, initialize=False, ignore_iterator=None) -> str:
         if idd.offset is None or type(idd.offset) == int:
-            address = self.variable_table.get_address(idd.name, idd.offset, initialize, ignore_iterators)
+            address = self.variable_table.get_address(idd.name, idd.offset, initialize, ignore_iterator)
             code = self.__generate_constant(address, register)
             return code
         else:
             bias = self.variable_table.get_bias(idd.name)
-            address = self.variable_table.get_address(idd.name, bias, initialize, ignore_iterators)
+            address = self.variable_table.get_address(idd.name, bias, initialize, ignore_iterator)
             reg = self.register_machine.borrow_register()
 
             code = self.__generate_constant(address, register)
@@ -399,10 +399,10 @@ class LangTranslator:
         counter_reg = self.register_machine.fetch_register()
         temp_reg = self.register_machine.borrow_register()
 
-        pre_run_code = self.__put_value_to_register(from_value, iterator_reg, ignore_iterators=True)
+        pre_run_code = self.__put_value_to_register(from_value, iterator_reg, ignore_iterator=idd)
         pre_run_code += "\n" + self.__put_address_to_register(Identifier(idd), temp_reg)
         pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
-        pre_run_code += "\n" + self.__put_value_to_register(to_value, counter_reg, ignore_iterators=True)
+        pre_run_code += "\n" + self.__put_value_to_register(to_value, counter_reg, ignore_iterator=idd)
         pre_run_code += "\nINC {}".format(counter_reg)
         pre_run_code += "\nSUB {} {}".format(counter_reg, iterator_reg)
         pre_run_code += "\n" + self.__put_address_to_register(Identifier(counter), temp_reg, initialize=True)
@@ -432,12 +432,12 @@ class LangTranslator:
         counter_reg = self.register_machine.fetch_register()
         temp_reg = self.register_machine.borrow_register()
 
-        pre_run_code = self.__put_value_to_register(from_value, iterator_reg, ignore_iterators=True)
+        pre_run_code = self.__put_value_to_register(from_value, iterator_reg, ignore_iterator=idd)
         pre_run_code += "\n" + self.__put_address_to_register(Identifier(idd), temp_reg)
         pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
         pre_run_code += "\n" + self.__copy_register(iterator_reg, counter_reg)
         pre_run_code += "\nINC {}".format(counter_reg)
-        pre_run_code += "\n" + self.__put_value_to_register(downto_value, temp_reg, ignore_iterators=True)
+        pre_run_code += "\n" + self.__put_value_to_register(downto_value, temp_reg, ignore_iterator=idd)
         pre_run_code += "\nSUB {} {}".format(counter_reg, temp_reg)
         pre_run_code += "\n" + self.__put_address_to_register(Identifier(counter), temp_reg, initialize=True)
 
