@@ -143,6 +143,12 @@ class LangTranslator:
         helper_reg = self.register_machine.borrow_register()
 
         code = self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
+        code += "\nSUB {} {}".format(helper_reg, reg2)
+        code += "\nJZERO {} 4".format(helper_reg)
+        code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
+        code += "\nJUMP 4"
+        code += "\nADD {} {}".format(helper_reg, reg2)
+        code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=reg2)
         code += "\nRESET {}".format(reg1)
         code += "\nJZERO {} 8".format(reg2)
         code += "\nJODD {} 4".format(reg2)
