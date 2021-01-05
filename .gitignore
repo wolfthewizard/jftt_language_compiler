@@ -135,3 +135,8 @@ source
 vm
 run
 execute
+/data/
+test.sh
+compiled_program.txt
+program_output.txt
+.idea
