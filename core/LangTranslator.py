@@ -20,7 +20,29 @@ from model.commands.Write import Write
 from model.errors import *
 
 
+def is_power_of_two(num: int) -> bool:
+    if num == 0:
+        return False
+
+    while num > 1:
+        if num % 2:
+            return False
+        num //= 2
+    return True
+
+
+def log(num: int) -> int:
+    res = 0
+    while num > 1:
+        res += 1
+        num //= 2
+    return res
+
+
 class LangTranslator:
+
+    ADDITION_SWITCH_THRESHOLD = 10
+    MULTIPLICATION_SWITCH_THRESHOLD = 1_000_000
 
     def __init__(self):
         self.variable_table = LangVariableTable()
@@ -131,6 +153,27 @@ class LangTranslator:
             return self.__perform_modulo(left_val, right_val)
 
     def __perform_addition(self, left_val: Value, right_val: Value) -> Feedback:
+        if left_val.is_int() and right_val.is_int():
+            reg = self.register_machine.fetch_register()
+            code = self.__generate_constant(left_val.core + right_val.core, reg)
+            return Feedback(code, reg)
+        elif left_val.is_int() or right_val.is_int():
+            if left_val.is_int():
+                num = left_val.core
+                val = right_val
+            else:
+                num = right_val.core
+                val = left_val
+            if num > LangTranslator.ADDITION_SWITCH_THRESHOLD:
+                return self.__perform_addition_2i(left_val, right_val)
+            reg = self.register_machine.fetch_register()
+            code = self.__put_value_to_register(val, reg)
+            code += "\n" + "\n".join(["INC {}".format(reg) for _ in range(num)])
+            return Feedback(code, reg)
+        else:
+            return self.__perform_addition_2i(left_val, right_val)
+
+    def __perform_addition_2i(self, left_val: Value, right_val: Value):
         reg1 = self.register_machine.fetch_register()
         reg2 = self.register_machine.fetch_register()
 
@@ -140,6 +183,23 @@ class LangTranslator:
         return Feedback(code, reg1)
 
     def __perform_subtraction(self, left_val: Value, right_val: Value) -> Feedback:
+        if left_val.is_int() and right_val.is_int():
+            reg = self.register_machine.fetch_register()
+            num = abs(left_val.core - right_val.core)
+            code = self.__generate_constant(num, reg)
+            return Feedback(code, reg)
+        elif right_val.is_int():
+            num = right_val.core
+            if num > LangTranslator.ADDITION_SWITCH_THRESHOLD:
+                return self.__perform_subtraction_2i(left_val, right_val)
+            reg = self.register_machine.fetch_register()
+            code = self.__put_value_to_register(left_val, reg)
+            code += "\n" + "\n".join(["DEC {}".format(reg) for _ in range(num)])
+            return Feedback(code, reg)
+        else:
+            return self.__perform_subtraction_2i(left_val, right_val)
+
+    def __perform_subtraction_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
         reg2 = self.register_machine.fetch_register()
 
@@ -149,6 +209,32 @@ class LangTranslator:
         return Feedback(code, reg1)
 
     def __perform_multiplication(self, left_val: Value, right_val: Value) -> Feedback:
+        if left_val.is_int() and right_val.is_int():
+            reg = self.register_machine.fetch_register()
+            code = self.__generate_constant(left_val.core * right_val.core, reg)
+            return Feedback(code, reg)
+        elif left_val.is_int() or right_val.is_int():
+            if left_val.is_int():
+                num = left_val.core
+                val = right_val
+            else:
+                num = right_val.core
+                val = left_val
+            if num == 0:
+                reg = self.register_machine.fetch_register()
+                code = "RESET {}".format(reg)
+                return Feedback(code, reg)
+            elif num < LangTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
+                reg = self.register_machine.fetch_register()
+                code = self.__put_value_to_register(val, reg)
+                code += "\n" + "\n".join(["SHL {}".format(reg) for _ in range(log(num))])
+                return Feedback(code, reg)
+            else:
+                return self.__perform_multiplication_2i(left_val, right_val)
+        else:
+            return self.__perform_multiplication_2i(left_val, right_val)
+
+    def __perform_multiplication_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
         reg2 = self.register_machine.fetch_register()
         helper_reg = self.register_machine.borrow_register()
@@ -174,6 +260,30 @@ class LangTranslator:
         return Feedback(code, reg1)
 
     def __perform_division(self, left_val: Value, right_val: Value) -> Feedback:
+        if left_val.is_int() and right_val.is_int():
+            reg = self.register_machine.fetch_register()
+            if right_val.core == 0:
+                code = "RESET {}".format(reg)
+            else:
+                code = self.__generate_constant(left_val.core // right_val.core, reg)
+            return Feedback(code, reg)
+        elif right_val.is_int():
+            num = right_val.core
+            if num == 0:
+                reg = self.register_machine.fetch_register()
+                code = "RESET {}".format(reg)
+                return Feedback(code, reg)
+            elif num < LangTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
+                reg = self.register_machine.fetch_register()
+                code = self.__put_value_to_register(left_val, reg)
+                code += "\n" + "\n".join(["SHR {}".format(reg) for _ in range(log(num))])
+                return Feedback(code, reg)
+            else:
+                return self.__perform_division_2i(left_val, right_val)
+        else:
+            return self.__perform_division_2i(left_val, right_val)
+
+    def __perform_division_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
         reg2 = self.register_machine.fetch_register()
         check_reg, mult_reg, dividend_reg = self.register_machine.borrow_registers(3)
@@ -218,6 +328,34 @@ class LangTranslator:
         return Feedback(code, reg1)
 
     def __perform_modulo(self, left_val: Value, right_val: Value) -> Feedback:
+        if left_val.is_int() and right_val.is_int():
+            reg = self.register_machine.fetch_register()
+            if right_val.core == 0:
+                code = "RESET {}".format(reg)
+            else:
+                code = self.__generate_constant(left_val.core % right_val.core, reg)
+            return Feedback(code, reg)
+        elif right_val.is_int():
+            num = right_val.core
+            if num == 0 or num == 1:
+                reg = self.register_machine.fetch_register()
+                code = "RESET {}".format(reg)
+                return Feedback(code, reg)
+            elif num == 2:
+                reg = self.register_machine.fetch_register()
+                code = self.__put_value_to_register(left_val, reg)
+                code += "\nJODD {} 3".format(reg)
+                code += "\nRESET {}".format(reg)
+                code += "\nJUMP 3"
+                code += "\nRESET {}".format(reg)
+                code += "\nINC {}".format(reg)
+                return Feedback(code, reg)
+            else:
+                return self.__perform_modulo_2i(left_val, right_val)
+        else:
+            return self.__perform_modulo_2i(left_val, right_val)
+
+    def __perform_modulo_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
         reg2 = self.register_machine.fetch_register()
         check_reg, mult_reg, division_result_reg = self.register_machine.borrow_registers(3)
