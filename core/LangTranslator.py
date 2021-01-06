@@ -1,6 +1,7 @@
 from core.LangVariableTable import LangVariableTable
 from core.LangRegisterMachine import LangRegisterMachine
 from model.internal.LangProgram import LangProgram
+from model.internal.Feedback import Feedback
 from model.nonterminals.Expression import Expression
 from model.nonterminals.Value import Value
 from model.nonterminals.Identifier import Identifier
@@ -117,32 +118,44 @@ class LangTranslator:
         commands.append("RESET {}".format(register))
         return "\n".join(commands[::-1])
 
-    def __perform_operation(self, reg1: str, reg2: str, operation: str):
+    def __perform_operation(self, left_val: Value, right_val: Value, operation: str) -> Feedback:
         if operation == "+":
-            return self.__perform_addition(reg1, reg2)
+            return self.__perform_addition(left_val, right_val)
         elif operation == "-":
-            return self.__perform_subtraction(reg1, reg2)
+            return self.__perform_subtraction(left_val, right_val)
         elif operation == "*":
-            return self.__perform_multiplication(reg1, reg2)
+            return self.__perform_multiplication(left_val, right_val)
         elif operation == "/":
-            return self.__perform_division(reg1, reg2)
+            return self.__perform_division(left_val, right_val)
         else:
-            return self.__perform_modulo(reg1, reg2)
+            return self.__perform_modulo(left_val, right_val)
 
-    @staticmethod
-    def __perform_addition(reg1: str, reg2: str):
-        code = "ADD {} {}".format(reg1, reg2)
-        return code
+    def __perform_addition(self, left_val: Value, right_val: Value) -> Feedback:
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
 
-    @staticmethod
-    def __perform_subtraction(reg1: str, reg2: str):
-        code = "SUB {} {}".format(reg1, reg2)
-        return code
+        code = self.__put_value_to_register(left_val, reg1)
+        code += "\n" + self.__put_value_to_register(right_val, reg2)
+        code += "\nADD {} {}".format(reg1, reg2)
+        return Feedback(code, reg1)
 
-    def __perform_multiplication(self, reg1: str, reg2: str):
+    def __perform_subtraction(self, left_val: Value, right_val: Value) -> Feedback:
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
+
+        code = self.__put_value_to_register(left_val, reg1)
+        code += "\n" + self.__put_value_to_register(right_val, reg2)
+        code += "\nSUB {} {}".format(reg1, reg2)
+        return Feedback(code, reg1)
+
+    def __perform_multiplication(self, left_val: Value, right_val: Value) -> Feedback:
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
         helper_reg = self.register_machine.borrow_register()
 
-        code = self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
+        code = self.__put_value_to_register(left_val, reg1)
+        code += "\n" + self.__put_value_to_register(right_val, reg2)
+        code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
         code += "\nSUB {} {}".format(helper_reg, reg2)
         code += "\nJZERO {} 4".format(helper_reg)
         code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
@@ -158,12 +171,16 @@ class LangTranslator:
         code += "\nADD {} {}".format(reg1, helper_reg)
         code += "\nDEC {}".format(reg2)
         code += "\nJUMP -7"
-        return code
+        return Feedback(code, reg1)
 
-    def __perform_division(self, reg1: str, reg2: str):
+    def __perform_division(self, left_val: Value, right_val: Value) -> Feedback:
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
         check_reg, mult_reg, dividend_reg = self.register_machine.borrow_registers(3)
 
-        code = self.__copy_register(reg1, dividend_reg)
+        code = self.__put_value_to_register(left_val, reg1)
+        code += "\n" + self.__put_value_to_register(right_val, reg2)
+        code += "\n" + self.__copy_register(reg1, dividend_reg)
         code += "\nRESET {}".format(reg1)
         code += "\nJZERO {} 32".format(reg2)                    # END
         code += "\nRESET {}".format(mult_reg)
@@ -197,12 +214,17 @@ class LangTranslator:
         code += "\nADD {} {}".format(reg1, mult_reg)
         code += "\nSUB {} {}".format(dividend_reg, reg2)
         code += "\nJUMP -10"
-        return code
 
-    def __perform_modulo(self, reg1: str, reg2: str):
+        return Feedback(code, reg1)
+
+    def __perform_modulo(self, left_val: Value, right_val: Value) -> Feedback:
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
         check_reg, mult_reg, division_result_reg = self.register_machine.borrow_registers(3)
 
-        code = "RESET {}".format(division_result_reg)
+        code = self.__put_value_to_register(left_val, reg1)
+        code += "\n" + self.__put_value_to_register(right_val, reg2)
+        code += "\nRESET {}".format(division_result_reg)
         code += "\nJZERO {} 33".format(reg2)  # END
         code += "\nRESET {}".format(mult_reg)
         code += "\nINC {}".format(mult_reg)
@@ -237,7 +259,8 @@ class LangTranslator:
         code += "\nJUMP -10"
         code += "\nJUMP 2"
         code += "\nRESET {}".format(reg1)
-        return code
+
+        return Feedback(code, reg1)
 
     def __perform_comparison(self, reg1: str, reg2: str, comparison: str):
         if comparison == "=":
@@ -334,14 +357,12 @@ class LangTranslator:
 
     def __assign_expression(self, changed_identifier: Identifier, assigned_expression: Expression) -> str:
         address_reg = self.register_machine.fetch_register()
-        val1_reg = self.register_machine.fetch_register()
-        val2_reg = self.register_machine.fetch_register()
 
         code = self.__put_address_to_register(changed_identifier, register=address_reg, initialize=True)
-        code += "\n" + self.__put_value_to_register(assigned_expression.val1, register=val1_reg)
-        code += "\n" + self.__put_value_to_register(assigned_expression.val2, register=val2_reg)
-        code += "\n" + self.__perform_operation(val1_reg, val2_reg, operation=assigned_expression.operation)
-        code += "\nSTORE {} {}".format(val1_reg, address_reg)
+        feedback = self.__perform_operation(assigned_expression.val1, assigned_expression.val2,
+                                                operation=assigned_expression.operation)
+        code += "\n" + feedback.code
+        code += "\nSTORE {} {}".format(feedback.register, address_reg)
         return code
 
     def if_then_else(self, condition: Condition, positive_commands: list, negative_commands: list) -> str:
