@@ -260,6 +260,7 @@ class LangTranslator:
         return Feedback(code, reg1)
 
     def __perform_division(self, left_val: Value, right_val: Value) -> Feedback:
+        #   PAMIĘTAĆ ŻE a / a = 1 DLA PRAWIE WSZYSTKICH, BO 0 / 0 = 0 !!!!!!!!!!11
         if left_val.is_int() and right_val.is_int():
             reg = self.register_machine.fetch_register()
             if right_val.core == 0:
@@ -288,42 +289,44 @@ class LangTranslator:
         reg2 = self.register_machine.fetch_register()
         check_reg, mult_reg, dividend_reg = self.register_machine.borrow_registers(3)
 
-        code = self.__put_value_to_register(left_val, reg1)
-        code += "\n" + self.__put_value_to_register(right_val, reg2)
-        code += "\n" + self.__copy_register(reg1, dividend_reg)
+        code = self.__put_value_to_register(right_val, reg2)
         code += "\nRESET {}".format(reg1)
-        code += "\nJZERO {} 32".format(reg2)                    # END
+        code += "\nJZERO {}".format(reg2)                       # END
+        snippet = self.__put_value_to_register(left_val, dividend_reg)
+        code += " {}".format(31 + self.__line_count(snippet))
+        code += "\n" + snippet
         code += "\nRESET {}".format(mult_reg)
         code += "\nINC {}".format(mult_reg)
         code += "\n" + self.__copy_register(reg2, check_reg)
         code += "\nSUB {} {}".format(check_reg, dividend_reg)
         code += "\nJZERO {} 2".format(check_reg)
-        code += "\nJUMP 25"                                     # END
+        code += "\nJUMP 24"                                     # END
         code += "\nINC {}".format(reg1)
         # beginning of 1st loop
         code += "\nSHL {}".format(mult_reg)
         code += "\nSHL {}".format(reg2)
-        code += "\n" + self.__copy_register(reg2, check_reg)
-        code += "\nSUB {} {}".format(check_reg, dividend_reg)
-        code += "\nJZERO {} 2".format(check_reg)
-        code += "\nJUMP 3"
         code += "\nSHL {}".format(reg1)
-        code += "\nJUMP -8"
+        code += "\nADD {} {}".format(check_reg, reg2)
+        code += "\nSUB {} {}".format(check_reg, dividend_reg)
+        code += "\nJZERO {} -5".format(check_reg)
         # end of the loop
         code += "\nSHR {}".format(reg2)
         code += "\nSHR {}".format(mult_reg)
+        code += "\nSHR {}".format(reg1)
         code += "\nSUB {} {}".format(dividend_reg, reg2)
+        code += "\nRESET {}".format(check_reg)
+        code += "\nJUMP 3"
         # beginning of 2nd loop
-        code += "\nSHR {}".format(mult_reg)
-        code += "\nJZERO {} 10".format(mult_reg)                 # END
-        code += "\nSHR {}".format(reg2)
-        code += "\n" + self.__copy_register(reg2, check_reg)
-        code += "\nSUB {} {}".format(check_reg, dividend_reg)
-        code += "\nJZERO {} 2".format(check_reg)
-        code += "\nJUMP -7"
         code += "\nADD {} {}".format(reg1, mult_reg)
         code += "\nSUB {} {}".format(dividend_reg, reg2)
-        code += "\nJUMP -10"
+        code += "\nSHR {}".format(mult_reg)
+        code += "\nJZERO {} 7".format(mult_reg)                 # END
+        code += "\nSHR {}".format(reg2)
+        code += "\nADD {} {}".format(check_reg, reg2)
+        code += "\nSUB {} {}".format(check_reg, dividend_reg)
+        code += "\nJZERO {} -7".format(check_reg)
+        code += "\nRESET {}".format(check_reg)
+        code += "\nJUMP -7"
 
         return Feedback(code, reg1)
 
@@ -360,10 +363,12 @@ class LangTranslator:
         reg2 = self.register_machine.fetch_register()
         check_reg, mult_reg, division_result_reg = self.register_machine.borrow_registers(3)
 
-        code = self.__put_value_to_register(left_val, reg1)
-        code += "\n" + self.__put_value_to_register(right_val, reg2)
+        code = self.__put_value_to_register(right_val, reg2)
         code += "\nRESET {}".format(division_result_reg)
-        code += "\nJZERO {} 33".format(reg2)  # END
+        code += "\nJZERO {}".format(reg2)  # END
+        snippet = self.__put_value_to_register(left_val, reg1)
+        code += " {}".format(31 + self.__line_count(snippet))
+        code += "\n" + snippet
         code += "\nRESET {}".format(mult_reg)
         code += "\nINC {}".format(mult_reg)
         code += "\n" + self.__copy_register(reg2, check_reg)
@@ -374,28 +379,28 @@ class LangTranslator:
         # beginning of 1st loop
         code += "\nSHL {}".format(mult_reg)
         code += "\nSHL {}".format(reg2)
-        code += "\n" + self.__copy_register(reg2, check_reg)
-        code += "\nSUB {} {}".format(check_reg, reg1)
-        code += "\nJZERO {} 2".format(check_reg)
-        code += "\nJUMP 3"
         code += "\nSHL {}".format(division_result_reg)
-        code += "\nJUMP -8"
+        code += "\nADD {} {}".format(check_reg, reg2)
+        code += "\nSUB {} {}".format(check_reg, reg1)
+        code += "\nJZERO {} -5".format(check_reg)
         # end of the loop
         code += "\nSHR {}".format(reg2)
         code += "\nSHR {}".format(mult_reg)
+        code += "\nSHR {}".format(division_result_reg)
         code += "\nSUB {} {}".format(reg1, reg2)
+        code += "\nRESET {}".format(check_reg)
+        code += "\nJUMP 3"
         # beginning of 2nd loop
-        code += "\nSHR {}".format(mult_reg)
-        code += "\nJZERO {} 10".format(mult_reg)  # END
-        code += "\nSHR {}".format(reg2)
-        code += "\n" + self.__copy_register(reg2, check_reg)
-        code += "\nSUB {} {}".format(check_reg, reg1)
-        code += "\nJZERO {} 2".format(check_reg)
-        code += "\nJUMP -7"
         code += "\nADD {} {}".format(division_result_reg, mult_reg)
         code += "\nSUB {} {}".format(reg1, reg2)
-        code += "\nJUMP -10"
-        code += "\nJUMP 2"
+        code += "\nSHR {}".format(mult_reg)
+        code += "\nJZERO {} 8".format(mult_reg)  # END
+        code += "\nSHR {}".format(reg2)
+        code += "\nADD {} {}".format(check_reg, reg2)
+        code += "\nSUB {} {}".format(check_reg, reg1)
+        code += "\nJZERO {} -7".format(check_reg)
+        code += "\nRESET {}".format(check_reg)
+        code += "\nJUMP -7"
         code += "\nRESET {}".format(reg1)
 
         return Feedback(code, reg1)
