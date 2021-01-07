@@ -241,22 +241,23 @@ class LangTranslator:
 
         code = self.__put_value_to_register(left_val, reg1)
         code += "\n" + self.__put_value_to_register(right_val, reg2)
-        code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
-        code += "\nSUB {} {}".format(helper_reg, reg2)
-        code += "\nJZERO {} 4".format(helper_reg)
-        code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=helper_reg)
-        code += "\nJUMP 4"
-        code += "\nADD {} {}".format(helper_reg, reg2)
+        code += "\n" + self.__copy_register(source_reg=reg2, dest_reg=helper_reg)
+        code += "\nSUB {} {}".format(helper_reg, reg1)
+        code += "\nJZERO {} 7".format(helper_reg)
+        code += "\n" + self.__copy_register(source_reg=reg2, dest_reg=helper_reg)
         code += "\n" + self.__copy_register(source_reg=reg1, dest_reg=reg2)
         code += "\nRESET {}".format(reg1)
-        code += "\nJZERO {} 8".format(reg2)
-        code += "\nJODD {} 4".format(reg2)
+        code += "\nJUMP 6"
+        code += "\nADD {} {}".format(helper_reg, reg1)
+        code += "\nRESET {}".format(reg1)
+        code += "\nJUMP 3"
+        code += "\nADD {} {}".format(reg1, helper_reg)
+        code += "\nDEC {}".format(reg2)
+        code += "\nJZERO {} 5".format(reg2)
+        code += "\nJODD {} -3".format(reg2)
         code += "\nSHR {}".format(reg2)
         code += "\nSHL {}".format(helper_reg)
         code += "\nJUMP -4"
-        code += "\nADD {} {}".format(reg1, helper_reg)
-        code += "\nDEC {}".format(reg2)
-        code += "\nJUMP -7"
         return Feedback(code, reg1)
 
     def __perform_division(self, left_val: Value, right_val: Value) -> Feedback:
