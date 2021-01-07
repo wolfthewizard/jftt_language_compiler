@@ -171,7 +171,13 @@ class LangTranslator:
             code += "\n" + "\n".join(["INC {}".format(reg) for _ in range(num)])
             return Feedback(code, reg)
         else:
-            return self.__perform_addition_2i(left_val, right_val)
+            if left_val == right_val:
+                reg = self.register_machine.fetch_register()
+                code = self.__put_value_to_register(left_val, reg)
+                code += "\nSHL {}".format(reg)
+                return Feedback(code, reg)
+            else:
+                return self.__perform_addition_2i(left_val, right_val)
 
     def __perform_addition_2i(self, left_val: Value, right_val: Value):
         reg1 = self.register_machine.fetch_register()
@@ -197,7 +203,12 @@ class LangTranslator:
             code += "\n" + "\n".join(["DEC {}".format(reg) for _ in range(num)])
             return Feedback(code, reg)
         else:
-            return self.__perform_subtraction_2i(left_val, right_val)
+            if not left_val.is_int() and left_val == right_val:
+                reg = self.register_machine.fetch_register()
+                code = "RESET {}".format(reg)
+                return Feedback(code, reg)
+            else:
+                return self.__perform_subtraction_2i(left_val, right_val)
 
     def __perform_subtraction_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
@@ -261,7 +272,6 @@ class LangTranslator:
         return Feedback(code, reg1)
 
     def __perform_division(self, left_val: Value, right_val: Value) -> Feedback:
-        #   PAMIĘTAĆ ŻE a / a = 1 DLA PRAWIE WSZYSTKICH, BO 0 / 0 = 0 !!!!!!!!!!11
         if left_val.is_int() and right_val.is_int():
             reg = self.register_machine.fetch_register()
             if right_val.core == 0:
@@ -283,7 +293,16 @@ class LangTranslator:
             else:
                 return self.__perform_division_2i(left_val, right_val)
         else:
-            return self.__perform_division_2i(left_val, right_val)
+            if not left_val.is_int() and left_val == right_val:
+                reg = self.register_machine.fetch_register()
+                helper_reg = self.register_machine.fetch_register()
+                code = self.__put_value_to_register(left_val, helper_reg)
+                code += "\nRESET {}".format(reg)
+                code += "\nJZERO {} 2".format(helper_reg)
+                code += "\nINC {}".format(reg)
+                return Feedback(code, reg)
+            else:
+                return self.__perform_division_2i(left_val, right_val)
 
     def __perform_division_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
@@ -357,7 +376,12 @@ class LangTranslator:
             else:
                 return self.__perform_modulo_2i(left_val, right_val)
         else:
-            return self.__perform_modulo_2i(left_val, right_val)
+            if not left_val.is_int() and left_val == right_val:
+                reg = self.register_machine.fetch_register()
+                code = "RESET {}".format(reg)
+                return Feedback(code, reg)
+            else:
+                return self.__perform_modulo_2i(left_val, right_val)
 
     def __perform_modulo_2i(self, left_val: Value, right_val: Value) -> Feedback:
         reg1 = self.register_machine.fetch_register()
@@ -504,7 +528,7 @@ class LangTranslator:
 
         code = self.__put_address_to_register(changed_identifier, register=address_reg, initialize=True)
         feedback = self.__perform_operation(assigned_expression.val1, assigned_expression.val2,
-                                                operation=assigned_expression.operation)
+                                            operation=assigned_expression.operation)
         code += "\n" + feedback.code
         code += "\nSTORE {} {}".format(feedback.register, address_reg)
         return code
