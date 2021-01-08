@@ -581,9 +581,8 @@ class LangTranslator:
         code = commands_code
         code += "\n" + self.__put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.__put_value_to_register(condition.val2, register=val2_reg)
-        code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison).format(2)
-        code += "\nJUMP 2"
-        code += "\nJUMP {}".format(-self.__line_count(code))
+        code += "\n" + self.__perform_comparison(val1_reg, val2_reg, condition.comparison)
+        code = code.format(-self.__line_count(code) + 1)
         return code
 
     def for_to(self, idd: str, from_value: Value, to_value: Value, commands: list):
