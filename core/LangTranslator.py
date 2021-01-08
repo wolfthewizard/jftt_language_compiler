@@ -592,7 +592,7 @@ class LangTranslator:
         commands_code = self.generate_code(commands)
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
-        temp_reg = self.register_machine.borrow_register()
+        temp_reg = self.register_machine.fetch_register()
 
         pre_run_code = self.__put_value_to_register(from_value, iterator_reg, ignore_iterator=idd)
         pre_run_code += "\n" + self.__put_address_to_register(Identifier(idd), temp_reg)
@@ -625,7 +625,7 @@ class LangTranslator:
         commands_code = self.generate_code(commands)
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
-        temp_reg = self.register_machine.borrow_register()
+        temp_reg = self.register_machine.fetch_register()
 
         pre_run_code = self.__put_value_to_register(from_value, iterator_reg, ignore_iterator=idd)
         pre_run_code += "\n" + self.__put_address_to_register(Identifier(idd), temp_reg)
@@ -664,7 +664,7 @@ class LangTranslator:
         if val.is_int():
             reg2 = self.register_machine.fetch_register()
             code = self.__put_value_to_register(val, register=reg)
-            code += "\nRESET {}".format(reg2)
+            code += "\n" + self.__generate_constant(self.variable_table.get_marker(), reg2)
             code += "\nSTORE {} {}".format(reg, reg2)
             code += "\nPUT {}".format(reg2)
         else:

@@ -12,7 +12,7 @@ class LangVariableTable:
     def __init__(self):
         self.__stack = Stack()
         self.__table = dict()
-        self.__marker = 1
+        self.__marker = 0
 
     def add_variable(self, name):
         if name in self.__table:
@@ -68,3 +68,6 @@ class LangVariableTable:
 
     def get_bias(self, name):
         return self.__table[name].get_bias()
+
+    def get_marker(self):
+        return self.__marker
