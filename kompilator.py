@@ -1,6 +1,9 @@
 from core.LangLexer import LangLexer
 from core.LangParser import LangParser
 from core.LangTranslator import LangTranslator
+from core.LangRegisterMachine import LangRegisterMachine
+from core.LangVariableTable import LangVariableTable
+from core.GenericTranslator import GenericTranslator
 import sys
 from model.errors import CodeException
 
@@ -25,18 +28,21 @@ The compiler will compile source code from source_file into assembly form and pu
 
     lexer = LangLexer()
     parser = LangParser()
-    translator = LangTranslator()
+
+    variable_table = LangVariableTable()
+    register_machine = LangRegisterMachine()
+    generic_translator = GenericTranslator(variable_table, register_machine)
+    lang_translator = LangTranslator(variable_table, register_machine, generic_translator)
 
     tokens = lexer.tokenize(source)
     program = parser.parse(tokens)
     try:
-        assembly = translator.translate_program(program)
+        assembly = lang_translator.translate_program(program)
+        with open(argv[2], "w") as f:
+            f.write(assembly)
     except CodeException as e:
         print(e)
         exit(1)
-
-    with open(argv[2], "w") as f:
-        f.write(assembly)
 
 
 if __name__ == "__main__":
