@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 class Stack:
 
     def __init__(self):
@@ -27,3 +30,8 @@ class Stack:
             return element
         else:
             raise KeyError
+
+    def clone(self):
+        stack = Stack()
+        stack.contents = deepcopy(self.contents)
+        return stack

@@ -3,6 +3,7 @@ from model.internal.LangInt import LangInt
 from model.internal.LangArray import LangArray
 from model.internal.Stack import Stack
 import random
+from copy import deepcopy
 
 
 class LangVariableTable:
@@ -71,3 +72,26 @@ class LangVariableTable:
 
     def get_marker(self):
         return self.__marker
+
+    def get_value(self, name, offset=None):
+        if name in self.__stack:
+            return None
+        var = self.__table[name]
+        if offset is not None and type(offset) != int:
+            offset = self.get_value(offset)
+        return var.get_value(offset)
+
+    def set_value(self, value, name, offset=None):
+        if name in self.__stack:
+            pass
+        var = self.__table[name]
+        if offset is not None and type(offset) != int:
+            offset = self.get_value(offset)
+        var.set_value(value, offset)
+
+    def clone(self):
+        var_table = LangVariableTable()
+        var_table.__stack = self.__stack.clone()
+        var_table.__table = deepcopy(self.__table)
+        var_table.__marker = self.__marker
+        return var_table

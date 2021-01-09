@@ -8,12 +8,6 @@ class VariableUnitilializedError(CodeException):
         super().__init__(msg)
 
 
-class NegativeValueError(CodeException):
-
-    def __init__(self, msg="error: negative value at line {}"):
-        super().__init__(msg)
-
-
 class InvalidRangeError(CodeException):
 
     def __init__(self, msg="error: invalid array range at line {}"):

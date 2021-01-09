@@ -6,6 +6,7 @@ class LangInt:
     def __init__(self, adr):
         self.__address = adr
         self.__initialized = False
+        self.__value = None
 
     def get_address(self, offset=None):
         if offset is not None:
@@ -25,3 +26,13 @@ class LangInt:
 
     def initialize(self):
         self.__initialized = True
+
+    def get_value(self, offset=None):
+        if offset is not None:
+            raise InvalidReferenceError
+        return self.__value
+
+    def set_value(self, value, offset=None):
+        if offset is not None:
+            raise InvalidReferenceError
+        self.__value = value

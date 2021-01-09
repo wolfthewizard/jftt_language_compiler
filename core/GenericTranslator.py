@@ -14,11 +14,12 @@ class GenericTranslator:
     def line_count(text: str) -> int:
         return text.count("\n") + 1
 
-    def put_value_to_register(self, val: Value, register, initialize=False, ignore_iterator=None) -> str:
+    def put_value_to_register(self, val: Value, register, ignore_iterator=None) -> str:
         if val.is_int():
             return self.generate_constant(val.core, register)
         else:
-            code = self.put_address_to_register(val.core, register, initialize, ignore_iterator)
+            # if it's value is known, and not too big (1mil?) then put it as a constant to register
+            code = self.put_address_to_register(val.core, register, ignore_iterator=ignore_iterator)
             code += "\nLOAD {} {}".format(register, register)
             return code
 
@@ -41,10 +42,12 @@ class GenericTranslator:
 
     @staticmethod
     def copy_register(source_reg: str, dest_reg: str):
-        return "RESET {}\nADD {} {}".format(dest_reg, dest_reg, source_reg)\
+        return "RESET {}\nADD {} {}".format(dest_reg, dest_reg, source_reg)
 
     @staticmethod
     def generate_constant(value: int, register) -> str:
+        if value < 0:
+            raise ValueError("Stuck upon negative value; please report this error along with stacktrace.")
         commands = []
         while value:
             if value % 2:
