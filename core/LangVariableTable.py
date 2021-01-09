@@ -95,3 +95,10 @@ class LangVariableTable:
         var_table.__table = deepcopy(self.__table)
         var_table.__marker = self.__marker
         return var_table
+
+    def diff(self, other):
+        diffs = []
+        for k, v in self.__table.items():
+            if v.has_different_value(other.__table[k]):
+                diffs.append(v.name)
+        return diffs

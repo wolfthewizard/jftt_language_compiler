@@ -36,3 +36,6 @@ class LangInt:
         if offset is not None:
             raise InvalidReferenceError
         self.__value = value
+
+    def has_different_value(self, other):
+        return self.__value != other.__value

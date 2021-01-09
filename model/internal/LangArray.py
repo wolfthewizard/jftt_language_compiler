@@ -53,3 +53,9 @@ class LangArray:
             raise ArrayOutOfBoundsError
         else:
             self.__values[offset - self.__bias] = value
+
+    def has_different_value(self, other):
+        for i, v in enumerate(self.__values):
+            if v != other.__values[i]:
+                return True
+        return False
