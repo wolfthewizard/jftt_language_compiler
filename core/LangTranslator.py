@@ -172,12 +172,15 @@ class LangTranslator:
         return code
 
     def __while_do(self, condition: Condition, commands: list) -> str:
+        # code has to be generated before fetching registers because condition check requires registers to be freshly
+        # fetched; in other case borrowed register inside check may be one of assigned registers
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
-        commands_code = self.__generate_code(commands)      # code has to be generated before fetching registers
-        val1_reg = self.register_machine.fetch_register()   # because condition check requires registers to be freshly
-        val2_reg = self.register_machine.fetch_register()   # fetched; in other case borrowed register inside check
-        # may be one of assigned registers
+        commands_code = self.__generate_code(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
+        val1_reg = self.register_machine.fetch_register()
+        val2_reg = self.register_machine.fetch_register()
+
 
         code = self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
@@ -191,6 +194,7 @@ class LangTranslator:
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
 
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
@@ -209,6 +213,7 @@ class LangTranslator:
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
 
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
@@ -247,6 +252,7 @@ class LangTranslator:
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
 
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
@@ -289,7 +295,6 @@ class LangTranslator:
 
     def __write(self, val: Value) -> str:
         reg = self.register_machine.fetch_register()
-        val = self.generic_translator.reflect_on_value(val)
         if val.is_int():
             reg2 = self.register_machine.fetch_register()
             code = self.generic_translator.put_value_to_register(val, register=reg)

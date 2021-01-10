@@ -77,7 +77,8 @@ class GenericTranslator:
                 return Value(reflected_value)
         return val
 
-    def get_changed_identifiers(self, commands):
+    @staticmethod
+    def get_changed_identifiers(commands):
         changed_identifiers = []
         for c in commands:
             changed_identifiers += c.get_changed_identifiers()

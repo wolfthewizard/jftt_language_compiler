@@ -68,7 +68,8 @@ class OperationTranslator:
                 return self.__perform_addition_2i(left_val, right_val)
             reg = self.register_machine.fetch_register()
             code = self.generic_translator.put_value_to_register(val, reg)
-            code += "\n" + "\n".join(["INC {}".format(reg) for _ in range(num)])
+            if num > 0:
+                code += "\n" + "\n".join(["INC {}".format(reg) for _ in range(num)])
             return Feedback(code, reg)
         else:
             self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
@@ -103,7 +104,8 @@ class OperationTranslator:
                 return self.__perform_subtraction_2i(left_val, right_val)
             reg = self.register_machine.fetch_register()
             code = self.generic_translator.put_value_to_register(left_val, reg)
-            code += "\n" + "\n".join(["DEC {}".format(reg) for _ in range(num)])
+            if num > 0:
+                code += "\n" + "\n".join(["DEC {}".format(reg) for _ in range(num)])
             return Feedback(code, reg)
         else:
             if not left_val.is_int() and left_val == right_val:
@@ -143,14 +145,11 @@ class OperationTranslator:
                 reg = self.register_machine.fetch_register()
                 code = "RESET {}".format(reg)
                 return Feedback(code, reg)
-            elif num == 1:
-                reg = self.register_machine.fetch_register()
-                code = self.generic_translator.put_value_to_register(val, reg)
-                return Feedback(code, reg)
             elif num < OperationTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
                 reg = self.register_machine.fetch_register()
                 code = self.generic_translator.put_value_to_register(val, reg)
-                code += "\n" + "\n".join(["SHL {}".format(reg) for _ in range(log(num))])
+                if num > 1:
+                    code += "\n" + "\n".join(["SHL {}".format(reg) for _ in range(log(num))])
                 return Feedback(code, reg)
             else:
                 return self.__perform_multiplication_2i(left_val, right_val)
@@ -201,7 +200,8 @@ class OperationTranslator:
             elif num < OperationTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
                 reg = self.register_machine.fetch_register()
                 code = self.generic_translator.put_value_to_register(left_val, reg)
-                code += "\n" + "\n".join(["SHR {}".format(reg) for _ in range(log(num))])
+                if num > 1:
+                    code += "\n" + "\n".join(["SHR {}".format(reg) for _ in range(log(num))])
                 return Feedback(code, reg)
             else:
                 return self.__perform_division_2i(left_val, right_val)

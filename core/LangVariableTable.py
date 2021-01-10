@@ -2,7 +2,6 @@ from model.errors import *
 from model.internal.LangInt import LangInt
 from model.internal.LangArray import LangArray
 from model.internal.Stack import Stack
-from model.nonterminals.Identifier import Identifier
 import random
 from copy import deepcopy
 

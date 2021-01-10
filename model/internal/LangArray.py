@@ -1,3 +1,4 @@
+from model.internal.DictList import DictList
 from model.errors import *
 
 
@@ -11,7 +12,7 @@ class LangArray:
         self.__bias = first
         self.__length = last - first + 1
         self.__initialized = True
-        self.__values = [None] * self.__length
+        self.__values = DictList()
 
     def __str__(self):
         val_str = "[" + ", ".join(
@@ -56,7 +57,7 @@ class LangArray:
 
     def set_value(self, value, offset=None):
         if offset is None:
-            self.__values = [None] * self.__length
+            self.__values.reset()
         elif offset - self.__bias >= self.__length or offset - self.__bias < 0:
             raise None     # it's an exception, but it will be handled later
         else:
@@ -64,6 +65,6 @@ class LangArray:
 
     def merge(self, other):
         new = LangArray(self.__bias, self.__bias + self.__length - 1, self.__address)
-        for i, val in enumerate(self.__values):
-            new.__values[i] = val if val == other.__values[i] else None
+        for k in self.__values.keys():
+            new.__values[k] = new.__values[k] if new.__values[k] == other.__values[k] else None
         return new
