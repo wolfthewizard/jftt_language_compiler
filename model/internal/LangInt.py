@@ -8,6 +8,13 @@ class LangInt:
         self.__initialized = False
         self.__value = None
 
+    def __str__(self):
+        val_str = str(self.__value) if self.__value is not None else "?"
+        return val_str
+
+    def __repr__(self):
+        return str(self)
+
     def get_address(self, offset=None):
         if offset is not None:
             raise InvalidReferenceError
@@ -29,13 +36,16 @@ class LangInt:
 
     def get_value(self, offset=None):
         if offset is not None:
-            raise InvalidReferenceError
+            return None     # it's an exception, but it will be handled later
         return self.__value
 
     def set_value(self, value, offset=None):
         if offset is not None:
-            raise InvalidReferenceError
+            return None     # it's an exception, but it will be handled later
         self.__value = value
 
-    def has_different_value(self, other):
-        return self.__value != other.__value
+    def merge(self, other):
+        new = LangInt(self.__address)
+        new.__initialized = self.__initialized
+        new.__value = self.__value if self.__value == other.__value else None
+        return new

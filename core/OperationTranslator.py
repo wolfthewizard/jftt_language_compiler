@@ -2,6 +2,7 @@ from core.LangVariableTable import LangVariableTable
 from core.LangRegisterMachine import LangRegisterMachine
 from core.GenericTranslator import GenericTranslator
 from model.nonterminals.Value import Value
+from model.nonterminals.Identifier import Identifier
 from model.internal.Feedback import Feedback
 
 
@@ -35,24 +36,28 @@ class OperationTranslator:
         self.register_machine = register_machine
         self.generic_translator = generic_translator
 
-    def perform_operation(self, left_val: Value, right_val: Value, operation: str) -> Feedback:
+    def perform_operation(self, left_val: Value, right_val: Value, operation: str,
+                          changed_identifier: Identifier) -> Feedback:
         if operation == "+":
-            return self.__perform_addition(left_val, right_val)
+            return self.__perform_addition(left_val, right_val, changed_identifier)
         elif operation == "-":
-            return self.__perform_subtraction(left_val, right_val)
+            return self.__perform_subtraction(left_val, right_val, changed_identifier)
         elif operation == "*":
-            return self.__perform_multiplication(left_val, right_val)
+            return self.__perform_multiplication(left_val, right_val, changed_identifier)
         elif operation == "/":
-            return self.__perform_division(left_val, right_val)
+            return self.__perform_division(left_val, right_val, changed_identifier)
         else:
-            return self.__perform_modulo(left_val, right_val)
+            return self.__perform_modulo(left_val, right_val, changed_identifier)
 
-    def __perform_addition(self, left_val: Value, right_val: Value) -> Feedback:
+    def __perform_addition(self, left_val: Value, right_val: Value, changed_identifier: Identifier) -> Feedback:
         if left_val.is_int() and right_val.is_int():
+            result = left_val.core + right_val.core
+            self.variable_table.set_value(result, changed_identifier.name, changed_identifier.offset)
             reg = self.register_machine.fetch_register()
-            code = self.generic_translator.generate_constant(left_val.core + right_val.core, reg)
+            code = self.generic_translator.generate_constant(result, reg)
             return Feedback(code, reg)
         elif left_val.is_int() or right_val.is_int():
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             if left_val.is_int():
                 num = left_val.core
                 val = right_val
@@ -66,6 +71,7 @@ class OperationTranslator:
             code += "\n" + "\n".join(["INC {}".format(reg) for _ in range(num)])
             return Feedback(code, reg)
         else:
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             if left_val == right_val:
                 reg = self.register_machine.fetch_register()
                 code = self.generic_translator.put_value_to_register(left_val, reg)
@@ -83,13 +89,15 @@ class OperationTranslator:
         code += "\nADD {} {}".format(reg1, reg2)
         return Feedback(code, reg1)
 
-    def __perform_subtraction(self, left_val: Value, right_val: Value) -> Feedback:
+    def __perform_subtraction(self, left_val: Value, right_val: Value, changed_identifier: Identifier) -> Feedback:
         if left_val.is_int() and right_val.is_int():
+            result = abs(left_val.core - right_val.core)
+            self.variable_table.set_value(result, changed_identifier.name, changed_identifier.offset)
             reg = self.register_machine.fetch_register()
-            num = abs(left_val.core - right_val.core)
-            code = self.generic_translator.generate_constant(num, reg)
+            code = self.generic_translator.generate_constant(result, reg)
             return Feedback(code, reg)
         elif right_val.is_int():
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             num = right_val.core
             if num > OperationTranslator.ADDITION_SWITCH_THRESHOLD:
                 return self.__perform_subtraction_2i(left_val, right_val)
@@ -99,10 +107,12 @@ class OperationTranslator:
             return Feedback(code, reg)
         else:
             if not left_val.is_int() and left_val == right_val:
+                self.variable_table.set_value(0, changed_identifier.name, changed_identifier.offset)
                 reg = self.register_machine.fetch_register()
                 code = "RESET {}".format(reg)
                 return Feedback(code, reg)
             else:
+                self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
                 return self.__perform_subtraction_2i(left_val, right_val)
 
     def __perform_subtraction_2i(self, left_val: Value, right_val: Value) -> Feedback:
@@ -114,12 +124,15 @@ class OperationTranslator:
         code += "\nSUB {} {}".format(reg1, reg2)
         return Feedback(code, reg1)
 
-    def __perform_multiplication(self, left_val: Value, right_val: Value) -> Feedback:
+    def __perform_multiplication(self, left_val: Value, right_val: Value, changed_identifier: Identifier) -> Feedback:
         if left_val.is_int() and right_val.is_int():
+            result = left_val.core * right_val.core
+            self.variable_table.set_value(result, changed_identifier.name, changed_identifier.offset)
             reg = self.register_machine.fetch_register()
-            code = self.generic_translator.generate_constant(left_val.core * right_val.core, reg)
+            code = self.generic_translator.generate_constant(result, reg)
             return Feedback(code, reg)
         elif left_val.is_int() or right_val.is_int():
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             if left_val.is_int():
                 num = left_val.core
                 val = right_val
@@ -130,6 +143,10 @@ class OperationTranslator:
                 reg = self.register_machine.fetch_register()
                 code = "RESET {}".format(reg)
                 return Feedback(code, reg)
+            elif num == 1:
+                reg = self.register_machine.fetch_register()
+                code = self.generic_translator.put_value_to_register(val, reg)
+                return Feedback(code, reg)
             elif num < OperationTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
                 reg = self.register_machine.fetch_register()
                 code = self.generic_translator.put_value_to_register(val, reg)
@@ -138,6 +155,7 @@ class OperationTranslator:
             else:
                 return self.__perform_multiplication_2i(left_val, right_val)
         else:
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             return self.__perform_multiplication_2i(left_val, right_val)
 
     def __perform_multiplication_2i(self, left_val: Value, right_val: Value) -> Feedback:
@@ -166,15 +184,15 @@ class OperationTranslator:
         code += "\nJUMP -4"
         return Feedback(code, reg1)
 
-    def __perform_division(self, left_val: Value, right_val: Value) -> Feedback:
+    def __perform_division(self, left_val: Value, right_val: Value, changed_identifier: Identifier) -> Feedback:
         if left_val.is_int() and right_val.is_int():
+            result = left_val.core // right_val.core if right_val.core != 0 else 0
+            self.variable_table.set_value(result, changed_identifier.name, changed_identifier.offset)
             reg = self.register_machine.fetch_register()
-            if right_val.core == 0:
-                code = "RESET {}".format(reg)
-            else:
-                code = self.generic_translator.generate_constant(left_val.core // right_val.core, reg)
+            code = self.generic_translator.generate_constant(result, reg)
             return Feedback(code, reg)
         elif right_val.is_int():
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             num = right_val.core
             if num == 0:
                 reg = self.register_machine.fetch_register()
@@ -188,6 +206,7 @@ class OperationTranslator:
             else:
                 return self.__perform_division_2i(left_val, right_val)
         else:
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             if not left_val.is_int() and left_val == right_val:
                 reg = self.register_machine.fetch_register()
                 helper_reg = self.register_machine.fetch_register()
@@ -245,15 +264,15 @@ class OperationTranslator:
 
         return Feedback(code, reg1)
 
-    def __perform_modulo(self, left_val: Value, right_val: Value) -> Feedback:
+    def __perform_modulo(self, left_val: Value, right_val: Value, changed_identifier: Identifier) -> Feedback:
         if left_val.is_int() and right_val.is_int():
+            result = left_val.core % right_val.core if right_val.core != 0 else 0
+            self.variable_table.set_value(result, changed_identifier.name, changed_identifier.offset)
             reg = self.register_machine.fetch_register()
-            if right_val.core == 0:
-                code = "RESET {}".format(reg)
-            else:
-                code = self.generic_translator.generate_constant(left_val.core % right_val.core, reg)
+            code = self.generic_translator.generate_constant(result, reg)
             return Feedback(code, reg)
         elif right_val.is_int():
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
             num = right_val.core
             if num == 0 or num == 1:
                 reg = self.register_machine.fetch_register()
@@ -272,10 +291,12 @@ class OperationTranslator:
                 return self.__perform_modulo_2i(left_val, right_val)
         else:
             if not left_val.is_int() and left_val == right_val:
+                self.variable_table.set_value(0, changed_identifier.name, changed_identifier.offset)
                 reg = self.register_machine.fetch_register()
                 code = "RESET {}".format(reg)
                 return Feedback(code, reg)
             else:
+                self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
                 return self.__perform_modulo_2i(left_val, right_val)
 
     def __perform_modulo_2i(self, left_val: Value, right_val: Value) -> Feedback:

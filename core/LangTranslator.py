@@ -23,13 +23,25 @@ from model.errors import *
 class LangTranslator:
 
     def __init__(self, variable_table: LangVariableTable, register_machine: LangRegisterMachine,
+                 operation_translator: OperationTranslator, condition_translator: ConditionTranslator,
                  generic_translator: GenericTranslator):
         self.variable_table = variable_table
         self.register_machine = register_machine
+        self.operation_translator = operation_translator
+        self.condition_translator = condition_translator
+        self.generic_translator = generic_translator
 
-        self.operation_translator = OperationTranslator(variable_table, register_machine, generic_translator)
-        self.condition_translator = ConditionTranslator(variable_table, register_machine, generic_translator)
-        self.generic_translator = GenericTranslator(variable_table, register_machine)
+    def __set_variable_table(self, variable_table: LangVariableTable):
+        self.variable_table = variable_table
+        self.operation_translator.variable_table = variable_table
+        self.condition_translator.variable_table = variable_table
+        self.generic_translator.variable_table = variable_table
+
+    def __set_register_machine(self, register_machine: LangRegisterMachine):
+        self.register_machine = register_machine
+        self.operation_translator.register_machine = register_machine
+        self.condition_translator.register_machine = register_machine
+        self.generic_translator.register_machine = register_machine
 
     def translate_program(self, program: LangProgram):
         for declaration in program.declarations:
@@ -93,7 +105,13 @@ class LangTranslator:
         value_reg = self.register_machine.fetch_register()
         address_reg = self.register_machine.fetch_register()
 
-        code = self.generic_translator.put_value_to_register(assigned_value, register=value_reg)
+        val = self.generic_translator.reflect_on_value(assigned_value)
+        if val.is_int():
+            self.variable_table.set_value(val.core, changed_identifier.name, changed_identifier.offset)
+            code = self.generic_translator.put_value_to_register(assigned_value, register=value_reg)
+        else:
+            self.variable_table.set_value(None, changed_identifier.name, changed_identifier.offset)
+            code = self.generic_translator.put_value_to_register(assigned_value, register=value_reg)
         code += "\n" + self.generic_translator.put_address_to_register(changed_identifier, register=address_reg,
                                                                        initialize=True)
         code += "\nSTORE {} {}".format(value_reg, address_reg)
@@ -104,15 +122,25 @@ class LangTranslator:
 
         code = self.generic_translator.put_address_to_register(changed_identifier, register=address_reg,
                                                                initialize=True)
-        feedback = self.operation_translator.perform_operation(assigned_expression.val1, assigned_expression.val2,
-                                                               operation=assigned_expression.operation)
+        val1 = self.generic_translator.reflect_on_value(assigned_expression.val1)
+        val2 = self.generic_translator.reflect_on_value(assigned_expression.val2)
+        feedback = self.operation_translator.perform_operation(val1, val2, operation=assigned_expression.operation,
+                                                               changed_identifier=changed_identifier)
         code += "\n" + feedback.code
         code += "\nSTORE {} {}".format(feedback.register, address_reg)
         return code
 
     def __if_then_else(self, condition: Condition, positive_commands: list, negative_commands: list) -> str:
+        original_var_table = self.variable_table
+        branch1_var_table = self.variable_table.clone()
+        branch2_var_table = self.variable_table.clone()
+        self.__set_variable_table(branch1_var_table)
         positive_commands_code = self.__generate_code(positive_commands)
+        self.__set_variable_table(branch2_var_table)
         negative_commands_code = self.__generate_code(negative_commands)
+        self.__set_variable_table(original_var_table)
+        self.variable_table.merge_from_two(branch1_var_table, branch2_var_table)
+
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
@@ -126,7 +154,13 @@ class LangTranslator:
         return code
 
     def __if_then(self, condition: Condition, commands: list) -> str:
+        original_var_table = self.variable_table
+        branch_var_table = self.variable_table.clone()
+        self.__set_variable_table(branch_var_table)
         commands_code = self.__generate_code(commands)
+        self.__set_variable_table(original_var_table)
+        self.variable_table.merge_from_one(branch_var_table)
+
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
@@ -138,10 +172,13 @@ class LangTranslator:
         return code
 
     def __while_do(self, condition: Condition, commands: list) -> str:
-        commands_code = self.__generate_code(commands)        # code has to be generated before fetching registers
+        changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
+        commands_code = self.__generate_code(commands)      # code has to be generated before fetching registers
         val1_reg = self.register_machine.fetch_register()   # because condition check requires registers to be freshly
         val2_reg = self.register_machine.fetch_register()   # fetched; in other case borrowed register inside check
         # may be one of assigned registers
+
         code = self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.condition_translator.perform_comparison(val1_reg, val2_reg, condition.comparison).format(
@@ -151,7 +188,10 @@ class LangTranslator:
         return code
 
     def __repeat_until(self, commands: list, condition: Condition) -> str:
+        changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
+
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
@@ -165,7 +205,11 @@ class LangTranslator:
     def __for_to(self, idd: str, from_value: Value, to_value: Value, commands: list):
         self.variable_table.add_iterator(idd)
         counter = self.variable_table.fetch_random_variable()
+
+        changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
+
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
         temp_reg = self.register_machine.fetch_register()
@@ -199,7 +243,11 @@ class LangTranslator:
     def __for_downto(self, idd: str, from_value: Value, downto_value: Value, commands: list):
         self.variable_table.add_iterator(idd)
         counter = self.variable_table.fetch_random_variable()
+
+        changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
+        self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
+
         iterator_reg = self.register_machine.fetch_register()
         counter_reg = self.register_machine.fetch_register()
         temp_reg = self.register_machine.fetch_register()
@@ -233,6 +281,7 @@ class LangTranslator:
         return pre_run_code + "\n" + code
 
     def __read(self, idd: Identifier) -> str:
+        self.variable_table.set_value(None, idd.name, idd.offset)
         reg = self.register_machine.fetch_register()
         code = self.generic_translator.put_address_to_register(idd, register=reg, initialize=True)
         code += "\nGET {}".format(reg)
@@ -240,6 +289,7 @@ class LangTranslator:
 
     def __write(self, val: Value) -> str:
         reg = self.register_machine.fetch_register()
+        val = self.generic_translator.reflect_on_value(val)
         if val.is_int():
             reg2 = self.register_machine.fetch_register()
             code = self.generic_translator.put_value_to_register(val, register=reg)

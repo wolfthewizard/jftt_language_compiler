@@ -2,6 +2,7 @@ from model.errors import *
 from model.internal.LangInt import LangInt
 from model.internal.LangArray import LangArray
 from model.internal.Stack import Stack
+from model.nonterminals.Identifier import Identifier
 import random
 from copy import deepcopy
 
@@ -84,10 +85,11 @@ class LangVariableTable:
     def set_value(self, value, name, offset=None):
         if name in self.__stack:
             pass
-        var = self.__table[name]
-        if offset is not None and type(offset) != int:
-            offset = self.get_value(offset)
-        var.set_value(value, offset)
+        else:
+            var = self.__table[name]
+            if offset is not None and type(offset) != int:
+                offset = self.get_value(offset)
+            var.set_value(value, offset)
 
     def clone(self):
         var_table = LangVariableTable()
@@ -96,9 +98,17 @@ class LangVariableTable:
         var_table.__marker = self.__marker
         return var_table
 
-    def diff(self, other):
-        diffs = []
-        for k, v in self.__table.items():
-            if v.has_different_value(other.__table[k]):
-                diffs.append(v.name)
-        return diffs
+    def merge_from_one(self, other):
+        for name in self.__table.keys():
+            self.__table[name] = self.__table[name].merge(other.__table[name])
+
+    def merge_from_two(self, other1, other2):
+        for name in self.__table.keys():
+            self.__table[name] = other1.__table[name].merge(other2.__table[name])
+
+    def unset_from_list(self, identifier_list):
+        for idd in identifier_list:
+            try:
+                self.set_value(None, idd.name, idd.offset)
+            except KeyError:
+                self.set_value(None, idd.name, None)

@@ -4,6 +4,8 @@ from core.LangTranslator import LangTranslator
 from core.LangRegisterMachine import LangRegisterMachine
 from core.LangVariableTable import LangVariableTable
 from core.GenericTranslator import GenericTranslator
+from core.OperationTranslator import OperationTranslator
+from core.ConditionTranslator import ConditionTranslator
 import sys
 from model.errors import CodeException
 
@@ -32,7 +34,10 @@ The compiler will compile source code from source_file into assembly form and pu
     variable_table = LangVariableTable()
     register_machine = LangRegisterMachine()
     generic_translator = GenericTranslator(variable_table, register_machine)
-    lang_translator = LangTranslator(variable_table, register_machine, generic_translator)
+    operation_translator = OperationTranslator(variable_table, register_machine, generic_translator)
+    condition_translator = ConditionTranslator(variable_table, register_machine, generic_translator)
+    lang_translator = LangTranslator(variable_table, register_machine, operation_translator, condition_translator,
+                                     generic_translator)
 
     tokens = lexer.tokenize(source)
     program = parser.parse(tokens)

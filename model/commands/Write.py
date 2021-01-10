@@ -12,3 +12,6 @@ class Write:
 
     def __repr__(self):
         return str(self)
+
+    def get_changed_identifiers(self):
+        return []

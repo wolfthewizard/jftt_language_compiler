@@ -1,5 +1,6 @@
 from model.nonterminals.Identifier import Identifier
 from model.nonterminals.Expression import Expression
+from model.nonterminals.Value import Value
 
 
 class Assign:
@@ -14,3 +15,6 @@ class Assign:
 
     def __repr__(self):
         return str(self)
+
+    def get_changed_identifiers(self):
+        return [self.changed_identifier]

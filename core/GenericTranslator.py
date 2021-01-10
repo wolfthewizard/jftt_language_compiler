@@ -2,9 +2,13 @@ from core.LangVariableTable import LangVariableTable
 from core.LangRegisterMachine import LangRegisterMachine
 from model.nonterminals.Value import Value
 from model.nonterminals.Identifier import Identifier
+from model.commands.Assign import Assign
+from model.commands.Read import Read
 
 
 class GenericTranslator:
+
+    KNOWN_VARIABLE_LOAD_THRESHOLD = 100_000     # todo: tweak
 
     def __init__(self, variable_table: LangVariableTable, register_machine: LangRegisterMachine):
         self.variable_table = variable_table
@@ -18,10 +22,15 @@ class GenericTranslator:
         if val.is_int():
             return self.generate_constant(val.core, register)
         else:
-            # if it's value is known, and not too big (1mil?) then put it as a constant to register
-            code = self.put_address_to_register(val.core, register, ignore_iterator=ignore_iterator)
-            code += "\nLOAD {} {}".format(register, register)
-            return code
+            idd = val.core
+            idd_val = self.variable_table.get_value(idd.name, idd.offset)
+            if idd_val is not None and idd_val < GenericTranslator.KNOWN_VARIABLE_LOAD_THRESHOLD:
+                code = self.generate_constant(idd_val, register)
+                return code
+            else:
+                code = self.put_address_to_register(val.core, register, ignore_iterator=ignore_iterator)
+                code += "\nLOAD {} {}".format(register, register)
+                return code
 
     def put_address_to_register(self, idd: Identifier, register, initialize=False, ignore_iterator=None) -> str:
         if idd.offset is None or type(idd.offset) == int:
@@ -58,3 +67,18 @@ class GenericTranslator:
                 value //= 2
         commands.append("RESET {}".format(register))
         return "\n".join(commands[::-1])
+
+    def reflect_on_value(self, val: Value):
+        if not val.is_int():
+            name = val.core.name
+            offset = val.core.offset
+            reflected_value = self.variable_table.get_value(name, offset)
+            if reflected_value is not None and reflected_value < GenericTranslator.KNOWN_VARIABLE_LOAD_THRESHOLD:
+                return Value(reflected_value)
+        return val
+
+    def get_changed_identifiers(self, commands):
+        changed_identifiers = []
+        for c in commands:
+            changed_identifiers += c.get_changed_identifiers()
+        return changed_identifiers
