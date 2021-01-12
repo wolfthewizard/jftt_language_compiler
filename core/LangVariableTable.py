@@ -38,6 +38,7 @@ class LangVariableTable:
     def fetch_random_variable(self):
         name = str(self.__marker)
         var = LangInt(self.__marker)
+        var.initialize()
         self.__marker += 1
         self.__table[name] = var
         return name

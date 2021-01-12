@@ -181,7 +181,6 @@ class LangTranslator:
         val1_reg = self.register_machine.fetch_register()
         val2_reg = self.register_machine.fetch_register()
 
-
         code = self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
         code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
         code += "\n" + self.condition_translator.perform_comparison(val1_reg, val2_reg, condition.comparison).format(
@@ -208,81 +207,80 @@ class LangTranslator:
 
     def __for_to(self, idd: str, from_value: Value, to_value: Value, commands: list):
         self.variable_table.add_iterator(idd)
-        counter = self.variable_table.fetch_random_variable()
+        limit = self.variable_table.fetch_random_variable()
 
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
         self.variable_table.unset_from_list(changed_identifiers)
 
-        iterator_reg = self.register_machine.fetch_register()
-        counter_reg = self.register_machine.fetch_register()
-        temp_reg = self.register_machine.fetch_register()
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
+        reg3 = self.register_machine.fetch_register()
 
-        pre_run_code = self.generic_translator.put_value_to_register(from_value, iterator_reg)
-        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), temp_reg)
-        pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
-        pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, counter_reg)
-        pre_run_code += "\nINC {}".format(counter_reg)
-        pre_run_code += "\nSUB {} {}".format(counter_reg, iterator_reg)
-        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(counter), temp_reg,
-                                                                               initialize=True)
+        pre_run_code = self.generic_translator.put_value_to_register(from_value, reg1)
+        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+        pre_run_code += "\nSTORE {} {}".format(reg1, reg2)
+        pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2)
+        pre_run_code += "\nINC {}".format(reg2)
+        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
+        pre_run_code += "\nSTORE {} {}".format(reg2, reg3)
+        pre_run_code += "\nSUB {} {}".format(reg2, reg1)
 
-        code = "JZERO {}".format(counter_reg) + " {}"
-        code += "\nSTORE {} {}".format(counter_reg, temp_reg)
+        code = "JZERO {}".format(reg2) + " {}"
         code += "\n" + commands_code
-        code += "\n" + self.generic_translator.generate_constant(self.variable_table.get_address(idd), temp_reg)
-        code += "\nLOAD {} {}".format(iterator_reg, temp_reg)
-        code += "\nINC {}".format(iterator_reg)
-        code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
-        code += "\n" + self.generic_translator.put_address_to_register(Identifier(counter), temp_reg)
-        code += "\nLOAD {} {}".format(counter_reg, temp_reg)
-        code += "\nDEC {}".format(counter_reg)
+        code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+        code += "\nLOAD {} {}".format(reg1, reg2)
+        code += "\nINC {}".format(reg1)
+        code += "\nSTORE {} {}".format(reg1, reg2)
+        code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
+        code += "\nLOAD {} {}".format(reg2, reg3)
+        code += "\nSUB {} {}".format(reg2, reg1)
         code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
         code = code.format(self.generic_translator.line_count(code))
 
-        self.variable_table.remove_variable(counter)
+        self.variable_table.remove_variable(limit)
         self.variable_table.remove_iterator(idd)
         return pre_run_code + "\n" + code
 
     def __for_downto(self, idd: str, from_value: Value, downto_value: Value, commands: list):
         self.variable_table.add_iterator(idd)
-        counter = self.variable_table.fetch_random_variable()
+        limit = self.variable_table.fetch_random_variable()
 
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
         self.variable_table.unset_from_list(changed_identifiers)
 
-        iterator_reg = self.register_machine.fetch_register()
-        counter_reg = self.register_machine.fetch_register()
-        temp_reg = self.register_machine.fetch_register()
+        reg1 = self.register_machine.fetch_register()
+        reg2 = self.register_machine.fetch_register()
+        reg3 = self.register_machine.fetch_register()
+        reg4 = self.register_machine.fetch_register()
 
-        pre_run_code = self.generic_translator.put_value_to_register(from_value, iterator_reg)
-        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), temp_reg)
-        pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
-        pre_run_code += "\n" + self.generic_translator.copy_register(iterator_reg, counter_reg)
-        pre_run_code += "\nINC {}".format(counter_reg)
-        pre_run_code += "\n" + self.generic_translator.put_value_to_register(downto_value, temp_reg)
-        pre_run_code += "\nSUB {} {}".format(counter_reg, temp_reg)
-        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(counter), temp_reg,
-                                                                               initialize=True)
+        pre_run_code = self.generic_translator.put_value_to_register(downto_value, reg1)
+        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
+        pre_run_code += "\nSTORE {} {}".format(reg1, reg3)
+        pre_run_code += "\n" + self.generic_translator.put_value_to_register(from_value, reg2)
+        pre_run_code += "\nINC {}".format(reg2)
+        pre_run_code += "\n" + self.generic_translator.copy_register(source_reg=reg2, dest_reg=reg4)
+        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg3)
+        pre_run_code += "\nSUB {} {}".format(reg2, reg1)
 
-        code = "JZERO {}".format(counter_reg) + " {}"
-        code += "\nSTORE {} {}".format(counter_reg, temp_reg)
+        code = "JZERO {}".format(reg2) + " {}"
+        code += "\nDEC {}".format(reg4)
+        code += "\nSTORE {} {}".format(reg4, reg3)
         code += "\n" + commands_code
-        code += "\n" + self.generic_translator.generate_constant(self.variable_table.get_address(idd), temp_reg)
-        code += "\nLOAD {} {}".format(iterator_reg, temp_reg)
-        code += "\nDEC {}".format(iterator_reg)
-        code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
-        code += "\n" + self.generic_translator.put_address_to_register(Identifier(counter), temp_reg)
-        code += "\nLOAD {} {}".format(counter_reg, temp_reg)
-        code += "\nDEC {}".format(counter_reg)
+        code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg3)
+        code += "\nLOAD {} {}".format(reg2, reg3)
+        code += "\n" + self.generic_translator.copy_register(source_reg=reg2, dest_reg=reg4)
+        code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg1)
+        code += "\nLOAD {} {}".format(reg1, reg1)
+        code += "\nSUB {} {}".format(reg2, reg1)
         code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
         code = code.format(self.generic_translator.line_count(code))
 
+        self.variable_table.remove_variable(limit)
         self.variable_table.remove_iterator(idd)
-        self.variable_table.remove_variable(counter)
         return pre_run_code + "\n" + code
 
     def __read(self, idd: Identifier) -> str:
