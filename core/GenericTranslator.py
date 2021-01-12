@@ -2,8 +2,6 @@ from core.LangVariableTable import LangVariableTable
 from core.LangRegisterMachine import LangRegisterMachine
 from model.nonterminals.Value import Value
 from model.nonterminals.Identifier import Identifier
-from model.commands.Assign import Assign
-from model.commands.Read import Read
 
 
 class GenericTranslator:
@@ -18,7 +16,7 @@ class GenericTranslator:
     def line_count(text: str) -> int:
         return text.count("\n") + 1
 
-    def put_value_to_register(self, val: Value, register, ignore_iterator=None) -> str:
+    def put_value_to_register(self, val: Value, register) -> str:
         if val.is_int():
             return self.generate_constant(val.core, register)
         else:
@@ -28,18 +26,18 @@ class GenericTranslator:
                 code = self.generate_constant(idd_val, register)
                 return code
             else:
-                code = self.put_address_to_register(val.core, register, ignore_iterator=ignore_iterator)
+                code = self.put_address_to_register(val.core, register)
                 code += "\nLOAD {} {}".format(register, register)
                 return code
 
-    def put_address_to_register(self, idd: Identifier, register, initialize=False, ignore_iterator=None) -> str:
+    def put_address_to_register(self, idd: Identifier, register, initialize=False) -> str:
         if idd.offset is None or type(idd.offset) == int:
-            address = self.variable_table.get_address(idd.name, idd.offset, initialize, ignore_iterator)
+            address = self.variable_table.get_address(idd.name, idd.offset, initialize)
             code = self.generate_constant(address, register)
             return code
         else:
             bias = self.variable_table.get_bias(idd.name)
-            address = self.variable_table.get_address(idd.name, bias, initialize, ignore_iterator)
+            address = self.variable_table.get_address(idd.name, bias, initialize)
             reg = self.register_machine.borrow_register()
 
             code = self.generate_constant(address, register)

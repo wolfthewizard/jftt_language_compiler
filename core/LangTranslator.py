@@ -219,10 +219,10 @@ class LangTranslator:
         counter_reg = self.register_machine.fetch_register()
         temp_reg = self.register_machine.fetch_register()
 
-        pre_run_code = self.generic_translator.put_value_to_register(from_value, iterator_reg, ignore_iterator=idd)
+        pre_run_code = self.generic_translator.put_value_to_register(from_value, iterator_reg)
         pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), temp_reg)
         pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
-        pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, counter_reg, ignore_iterator=idd)
+        pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, counter_reg)
         pre_run_code += "\nINC {}".format(counter_reg)
         pre_run_code += "\nSUB {} {}".format(counter_reg, iterator_reg)
         pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(counter), temp_reg,
@@ -258,13 +258,12 @@ class LangTranslator:
         counter_reg = self.register_machine.fetch_register()
         temp_reg = self.register_machine.fetch_register()
 
-        pre_run_code = self.generic_translator.put_value_to_register(from_value, iterator_reg, ignore_iterator=idd)
+        pre_run_code = self.generic_translator.put_value_to_register(from_value, iterator_reg)
         pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), temp_reg)
         pre_run_code += "\nSTORE {} {}".format(iterator_reg, temp_reg)
         pre_run_code += "\n" + self.generic_translator.copy_register(iterator_reg, counter_reg)
         pre_run_code += "\nINC {}".format(counter_reg)
-        pre_run_code += "\n" + self.generic_translator.put_value_to_register(downto_value, temp_reg,
-                                                                             ignore_iterator=idd)
+        pre_run_code += "\n" + self.generic_translator.put_value_to_register(downto_value, temp_reg)
         pre_run_code += "\nSUB {} {}".format(counter_reg, temp_reg)
         pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(counter), temp_reg,
                                                                                initialize=True)

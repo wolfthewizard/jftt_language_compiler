@@ -2,13 +2,10 @@ from model.errors import *
 from model.internal.LangInt import LangInt
 from model.internal.LangArray import LangArray
 from model.internal.Stack import Stack
-import random
 from copy import deepcopy
 
 
 class LangVariableTable:
-
-    alphabet = "qwertyuiopasdfghjklzxcvbnm"
 
     def __init__(self):
         self.__stack = Stack()
@@ -39,9 +36,7 @@ class LangVariableTable:
         self.__marker -= 1
 
     def fetch_random_variable(self):
-        name = random.choice(LangVariableTable.alphabet)
-        while name in self.__table.keys() or name in self.__stack:
-            name += random.choice(LangVariableTable.alphabet)
+        name = str(self.__marker)
         var = LangInt(self.__marker)
         self.__marker += 1
         self.__table[name] = var
@@ -51,9 +46,9 @@ class LangVariableTable:
         self.__marker -= 1
         del self.__table[name]
 
-    def get_address(self, name, offset=None, initialize=False, ignore_iterator=None):
+    def get_address(self, name, offset=None, initialize=False):
         try:
-            if name in self.__stack and name != ignore_iterator:
+            if name in self.__stack:
                 var = self.__stack.get(name)
                 if initialize:
                     raise IteratorAssignmentError
