@@ -6,7 +6,7 @@ from model.nonterminals.Identifier import Identifier
 
 class GenericTranslator:
 
-    KNOWN_VARIABLE_LOAD_THRESHOLD = 100_000     # todo: tweak
+    KNOWN_VARIABLE_LOAD_THRESHOLD = 100_000
 
     def __init__(self, variable_table: LangVariableTable, register_machine: LangRegisterMachine):
         self.variable_table = variable_table

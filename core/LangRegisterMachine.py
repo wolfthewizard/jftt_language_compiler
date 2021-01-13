@@ -1,9 +1,3 @@
-from model.errors import *
-
-# todo: optimization
-#       implement variable memory with way to check if variable is loaded into one of registers
-
-
 class LangRegisterMachine:
 
     __registers = [
