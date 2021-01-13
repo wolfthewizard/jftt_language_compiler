@@ -1,0 +1,29 @@
+Autor:
+Mateusz Wałejko
+250335
+
+1. Wstęp
+	Ten projekt jest implementacją kompilatora języka zdefiniowanego przez dra Macieja Gębalę na potrzeby kursu "Języki Formalne i Techniki Translacji" w semestrze zimowym 2020/2021.
+
+2. Wymagania
+	Do uruchomienia kompilatora potrzebny interpreter języka python (sudo apt get python). Kod został napisany dla interpretera w wersji 3.8.2, ale powinien działać w każdej wersji >=3.6.0.
+	Dodatkowym wymogiem jest zainstalowanie w systemie biblioteki SLY (sudo pip3 install sly). Kod został przygotowany do działania w wersji 0.4.
+
+3. Uruchamianie
+	python3 kompilator.py <plik_wejściowy> <plik_wyjściowy>
+	Po uruchomieniu, program zczyta kod z pliku wejściowego, i w przypadku niewystąpienia błędów, zapisze w pliku wyjściowym kod dla maszyny wirtualnej zdefiniowanej przez dra Gębalę.
+
+4. Opis kluczowych plików i katalogów
+	./kompilator.py		- główny skrypt uruchamiający kompilator
+	
+	./core				- katalog zawierający implementacje klas zajmujących się logiką kompilatora
+	LangLexer.py, LangParser.py	- lekser i parser języka
+	LangTranslator.py, OperationTranslator.py, ConditionTranslator.py, GenericTranslator.py	-	klasy przekładające otrzymane instrukcje na kod maszynowy. Najwyżej w hierarchii stoi LangTranslator, pod nim są translatory Operation i Condition, a wszystkie z 3 klas korzystają z GenericTranslator
+	LangVariableTable.py, LangRegisterMachine.py		- implementacje tablicy zmiennych i maszyny rejestrowej
+	
+	./model			- katalog zawierający klasy modelowe, służące do przekazywania informacji między metodami z klas z core
+	error.py		- zbiór klas błędów, zawarty w jednym pliku
+	commands		- katalog zawierający klasy modelu odpowiadające instrukcjom języka
+	nonterminals	- katalog zawierający klasy modelu odpowiadające występującym w zdefiniowanej dla języka gramatyce nieterminalami
+	internal		- katalog zawierający klasy modelu używane w celu przechowywania i przekazywania informacji
+	
