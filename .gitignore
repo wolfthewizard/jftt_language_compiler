@@ -141,3 +141,7 @@ compiled_program.txt
 program_output.txt
 .idea
 new_benchmark.txt
+./errors
+./errors.sh
+errors.txt
+new_errors.txt
