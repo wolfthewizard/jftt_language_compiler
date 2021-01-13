@@ -16,7 +16,7 @@ class GenericTranslator:
     def line_count(text: str) -> int:
         return text.count("\n") + 1
 
-    def put_value_to_register(self, val: Value, register) -> str:
+    def put_value_to_register(self, val: Value, register, ignore_iterator=None) -> str:
         if val.is_int():
             return self.generate_constant(val.core, register)
         else:
@@ -26,24 +26,25 @@ class GenericTranslator:
                 code = self.generate_constant(idd_val, register)
                 return code
             else:
-                code = self.put_address_to_register(val.core, register)
+                code = self.put_address_to_register(val.core, register, ignore_iterator=ignore_iterator)
                 code += "\nLOAD {} {}".format(register, register)
                 return code
 
-    def put_address_to_register(self, idd: Identifier, register, initialize=False) -> str:
+    def put_address_to_register(self, idd: Identifier, register, initialize=False, ignore_iterator=None) -> str:
         if idd.offset is None or type(idd.offset) == int:
-            address = self.variable_table.get_address(idd.name, idd.offset, initialize)
+            address = self.variable_table.get_address(idd.name, idd.offset, initialize, ignore_iterator=ignore_iterator)
             code = self.generate_constant(address, register)
             return code
         else:
             bias = self.variable_table.get_bias(idd.name)
-            address = self.variable_table.get_address(idd.name, bias, initialize)
+            address = self.variable_table.get_address(idd.name, bias, initialize, ignore_iterator)
             reg = self.register_machine.borrow_register()
 
             code = self.generate_constant(address, register)
-            code += "\n" + self.put_value_to_register(Value(Identifier(idd.offset)), register=reg)
+            code += "\n" + self.put_value_to_register(Value(Identifier(idd.offset)), reg,
+                                                      ignore_iterator=ignore_iterator)
             code += "\nADD {} {}".format(register, reg)
-            code += "\n" + self.put_value_to_register(Value(bias), register=reg)
+            code += "\n" + self.put_value_to_register(Value(bias), reg, ignore_iterator=ignore_iterator)
             code += "\nSUB {} {}".format(register, reg)
             return code
 

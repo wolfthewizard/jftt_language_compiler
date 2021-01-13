@@ -37,7 +37,7 @@ class LangParser(Parser):
         return LangProgram([], t[1])
 
     def error(self, t):
-        print("syntax error at line {}".format(t.lineno))
+        print("syntax error: \"{}\", at line {}".format(t.value, t.lineno))
         exit(1)
 
     @_('declarations "," ID')

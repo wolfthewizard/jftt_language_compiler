@@ -1,6 +1,5 @@
 from model.nonterminals.Identifier import Identifier
 from model.nonterminals.Expression import Expression
-from model.nonterminals.Value import Value
 
 
 class Assign:

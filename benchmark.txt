@@ -114,15 +114,29 @@ Test ADD_arrays.imp passed for input input1.txt in time 754, i/o: 300.
 
 Test ADD_arrays.imp passed for input input2.txt in time 614, i/o: 300.
 
+Test ADD_conditions.imp passed for input input1.txt in time 1783, i/o: 400.
+
 Test ADD_division.imp passed for input input1.txt in time 1253, i/o: 700.
 
 Test ADD_division2.imp passed for input input1.txt in time 10682, i/o: 3600.
 
 Test ADD_edge_operations.imp passed for input input1.txt in time 1066, i/o: 600.
 
+Test ADD_matrix_mult.imp passed for input input1.txt in time 49873, i/o: 2800.
+
+Test ADD_matrix_mult.imp passed for input input2.txt in time 1343692, i/o: 30100.
+
+Test ADD_iterator_delimiter.imp passed for input input1.txt in time 1647, i/o: 800.
+
+Test ADD_iterator_delimiter.imp passed for input input2.txt in time 1647, i/o: 800.
+
+Test ADD_iterator_variables.imp passed for input input1.txt in time 49531, i/o: 900.
+
 Test ADD_loops.imp passed for input input1.txt in time 20922, i/o: 3400.
 
 Test ADD_modulo.imp passed for input input1.txt in time 1256, i/o: 700.
 
 Test ADD_modulo2.imp passed for input input1.txt in time 10842, i/o: 3600.
+
+Test ADD_operation_shortcuts.imp passed for input input1.txt in time 7029, i/o: 3400.
 

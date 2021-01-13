@@ -4,10 +4,11 @@ from model.errors import *
 
 class LangArray:
 
-    def __init__(self, first, last, adr):
+    def __init__(self, name, first, last, adr):
         if last < first:
-            raise InvalidRangeError
+            raise InvalidRangeError(ref=name)
 
+        self.__name = name
         self.__address = adr
         self.__bias = first
         self.__length = last - first + 1
@@ -24,11 +25,11 @@ class LangArray:
 
     def get_address(self, offset=None):
         if not self.__initialized:
-            raise VariableUnitilializedError
+            raise VariableUnitilializedError(ref=self.__name)
         elif offset is None:
-            raise InvalidReferenceError
+            raise ArrayAsVariableReferenceError(ref=self.__name)
         elif offset - self.__bias >= self.__length or offset - self.__bias < 0:
-            raise ArrayOutOfBoundsError
+            raise ArrayOutOfBoundsError(ref=self.__name)
         else:
             return self.__address + offset - self.__bias
 
@@ -59,12 +60,12 @@ class LangArray:
         if offset is None:
             self.__values.reset()
         elif offset - self.__bias >= self.__length or offset - self.__bias < 0:
-            raise None     # it's an exception, but it will be handled later
+            return None     # it's an exception, but it will be handled later
         else:
             self.__values[offset - self.__bias] = value
 
     def merge(self, other):
-        new = LangArray(self.__bias, self.__bias + self.__length - 1, self.__address)
+        new = LangArray(self.__name, self.__bias, self.__bias + self.__length - 1, self.__address)
         for k in self.__values.keys():
             new.__values[k] = new.__values[k] if new.__values[k] == other.__values[k] else None
         return new

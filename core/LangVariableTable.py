@@ -14,19 +14,19 @@ class LangVariableTable:
 
     def add_variable(self, name):
         if name in self.__table:
-            raise SecondDeclarationError
-        self.__table[name] = LangInt(self.__marker)
+            raise SecondDeclarationError(ref=name)
+        self.__table[name] = LangInt(name, self.__marker)
         self.__marker += 1
 
     def add_array(self, name, first, last):
         if name in self.__table:
-            raise SecondDeclarationError
-        arr = LangArray(first, last, self.__marker)
+            raise SecondDeclarationError(ref=name)
+        arr = LangArray(name, first, last, self.__marker)
         self.__table[name] = arr
         self.__marker += len(arr)
 
     def add_iterator(self, name):
-        iterator = LangInt(self.__marker)
+        iterator = LangInt(name, self.__marker)
         iterator.initialize()
         self.__marker += 1
         self.__stack.insert(name, iterator)
@@ -37,7 +37,7 @@ class LangVariableTable:
 
     def fetch_random_variable(self):
         name = str(self.__marker)
-        var = LangInt(self.__marker)
+        var = LangInt(name, self.__marker)
         var.initialize()
         self.__marker += 1
         self.__table[name] = var
@@ -47,21 +47,21 @@ class LangVariableTable:
         self.__marker -= 1
         del self.__table[name]
 
-    def get_address(self, name, offset=None, initialize=False):
+    def get_address(self, name, offset=None, initialize=False, ignore_iterator=None):
         try:
-            if name in self.__stack:
+            if name in self.__stack and name != ignore_iterator:
                 var = self.__stack.get(name)
                 if initialize:
-                    raise IteratorAssignmentError
+                    raise IteratorAssignmentError(ref=name)
             else:
                 var = self.__table[name]
                 if initialize:
                     var.initialize()
             return var.get_address(offset)
-        except (VariableUnitilializedError, InvalidReferenceError) as e:
+        except (VariableUnitilializedError, VariableAsArrayReferenceError, ArrayAsVariableReferenceError) as e:
             raise e
         except KeyError:
-            raise VariableUndeclaredError
+            raise VariableUndeclaredError(ref=name)
 
     def get_bias(self, name):
         return self.__table[name].get_bias()
@@ -72,19 +72,25 @@ class LangVariableTable:
     def get_value(self, name, offset=None):
         if name in self.__stack:
             return None
-        var = self.__table[name]
-        if offset is not None and type(offset) != int:
-            offset = self.get_value(offset)
-        return var.get_value(offset)
+        try:
+            var = self.__table[name]
+            if offset is not None and type(offset) != int:
+                offset = self.get_value(offset)
+            return var.get_value(offset)
+        except KeyError:
+            pass    # it's an exception, but it will be handled later
 
     def set_value(self, value, name, offset=None):
         if name in self.__stack:
             pass
         else:
-            var = self.__table[name]
-            if offset is not None and type(offset) != int:
-                offset = self.get_value(offset)
-            var.set_value(value, offset)
+            try:
+                var = self.__table[name]
+                if offset is not None and type(offset) != int:
+                    offset = self.get_value(offset)
+                var.set_value(value, offset)
+            except KeyError:
+                pass    # it's an exception, but it will be handled later
 
     def clone(self):
         var_table = LangVariableTable()

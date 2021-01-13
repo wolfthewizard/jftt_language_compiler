@@ -3,7 +3,8 @@ from model.errors import *
 
 class LangInt:
 
-    def __init__(self, adr):
+    def __init__(self, name, adr):
+        self.__name = name
         self.__address = adr
         self.__initialized = False
         self.__value = None
@@ -17,9 +18,9 @@ class LangInt:
 
     def get_address(self, offset=None):
         if offset is not None:
-            raise InvalidReferenceError
+            raise VariableAsArrayReferenceError(ref=self.__name)
         elif not self.__initialized:
-            raise VariableUnitilializedError
+            raise VariableUnitilializedError(ref=self.__name)
         else:
             return self.__address
 
@@ -45,7 +46,7 @@ class LangInt:
         self.__value = value
 
     def merge(self, other):
-        new = LangInt(self.__address)
+        new = LangInt(self.__name, self.__address)
         new.__initialized = self.__initialized
         new.__value = self.__value if self.__value == other.__value else None
         return new
