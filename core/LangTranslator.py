@@ -22,6 +22,8 @@ from model.errors import *
 
 class LangTranslator:
 
+    LOOP_EXPANSION_THRESHOLD = 32
+
     def __init__(self, variable_table: LangVariableTable, register_machine: LangRegisterMachine,
                  operation_translator: OperationTranslator, condition_translator: ConditionTranslator,
                  generic_translator: GenericTranslator):
@@ -218,41 +220,61 @@ class LangTranslator:
         commands_code = self.__generate_code(commands)
         self.variable_table.unset_from_list(changed_identifiers)
 
-        reg1 = self.register_machine.fetch_register()
-        reg2 = self.register_machine.fetch_register()
-        reg3 = self.register_machine.fetch_register()
+        if from_value.is_int() and to_value.is_int() and \
+                to_value.core - from_value.core <= LangTranslator.LOOP_EXPANSION_THRESHOLD:
+            iterator = from_value
 
-        pre_run_code = self.generic_translator.put_value_to_register(from_value, reg1, ignore_iterator=idd)
-        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
-        pre_run_code += "\nSTORE {} {}".format(reg1, reg2)
-        if delimiter_has_unknown_value:
-            pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2, ignore_iterator=idd)
-            pre_run_code += "\nINC {}".format(reg2)
-            pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
-            pre_run_code += "\nSTORE {} {}".format(reg2, reg3)
-        else:
-            to_value.core += 1
-            pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2)
-        pre_run_code += "\nSUB {} {}".format(reg2, reg1)
+            reg1 = self.register_machine.fetch_register()
+            reg2 = self.register_machine.fetch_register()
 
-        code = "JZERO {}".format(reg2) + " {}"
-        code += "\n" + commands_code
-        code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
-        code += "\nLOAD {} {}".format(reg1, reg2)
-        code += "\nINC {}".format(reg1)
-        code += "\nSTORE {} {}".format(reg1, reg2)
-        if delimiter_has_unknown_value:
-            code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
-            code += "\nLOAD {} {}".format(reg2, reg3)
+            pre_run_code = self.generic_translator.put_value_to_register(from_value, reg1, ignore_iterator=idd)
+            pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+            pre_run_code += "\nSTORE {} {}".format(reg1, reg2)
+
+            code = ""
+            while to_value.core - iterator.core >= 0:
+                code += "\n" + commands_code if code else commands_code
+                code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+                code += "\nLOAD {} {}".format(reg1, reg2)
+                code += "\nINC {}".format(reg1)
+                code += "\nSTORE {} {}".format(reg1, reg2)
+                iterator.core += 1
         else:
-            code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2)
-        code += "\nSUB {} {}".format(reg2, reg1)
-        code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
-        code = code.format(self.generic_translator.line_count(code))
+            reg1 = self.register_machine.fetch_register()
+            reg2 = self.register_machine.fetch_register()
+            reg3 = self.register_machine.fetch_register()
+
+            pre_run_code = self.generic_translator.put_value_to_register(from_value, reg1, ignore_iterator=idd)
+            pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+            pre_run_code += "\nSTORE {} {}".format(reg1, reg2)
+            if delimiter_has_unknown_value:
+                pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2, ignore_iterator=idd)
+                pre_run_code += "\nINC {}".format(reg2)
+                pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
+                pre_run_code += "\nSTORE {} {}".format(reg2, reg3)
+            else:
+                to_value.core += 1
+                pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2)
+            pre_run_code += "\nSUB {} {}".format(reg2, reg1)
+
+            code = "JZERO {}".format(reg2) + " {}"
+            code += "\n" + commands_code
+            code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+            code += "\nLOAD {} {}".format(reg1, reg2)
+            code += "\nINC {}".format(reg1)
+            code += "\nSTORE {} {}".format(reg1, reg2)
+            if delimiter_has_unknown_value:
+                code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
+                code += "\nLOAD {} {}".format(reg2, reg3)
+            else:
+                code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2)
+            code += "\nSUB {} {}".format(reg2, reg1)
+            code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
+            code = code.format(self.generic_translator.line_count(code))
 
         self.variable_table.remove_variable(limit)
         self.variable_table.remove_iterator(idd)
-        return pre_run_code + "\n" + code
+        return pre_run_code + "\n" + code if code else pre_run_code
 
     def __for_downto(self, idd: str, from_value: Value, downto_value: Value, commands: list):
         self.variable_table.add_iterator(idd)
@@ -267,39 +289,59 @@ class LangTranslator:
         commands_code = self.__generate_code(commands)
         self.variable_table.unset_from_list(changed_identifiers)
 
-        reg1 = self.register_machine.fetch_register()
-        reg2 = self.register_machine.fetch_register()
-        reg3 = self.register_machine.fetch_register()
-        reg4 = self.register_machine.fetch_register()
+        if from_value.is_int() and downto_value.is_int() and \
+                from_value.core - downto_value.core <= LangTranslator.LOOP_EXPANSION_THRESHOLD:
+            iterator = from_value
 
-        pre_run_code = self.generic_translator.put_value_to_register(downto_value, reg1, ignore_iterator=idd)
-        if delimiter_has_unknown_value:
-            pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
-            pre_run_code += "\nSTORE {} {}".format(reg1, reg3)
-        pre_run_code += "\n" + self.generic_translator.put_value_to_register(from_value, reg2, ignore_iterator=idd)
-        pre_run_code += "\nINC {}".format(reg2)
-        pre_run_code += "\n" + self.generic_translator.copy_register(source_reg=reg2, dest_reg=reg4)
-        pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg3)
-        pre_run_code += "\nSUB {} {}".format(reg2, reg1)
+            reg1 = self.register_machine.fetch_register()
+            reg2 = self.register_machine.fetch_register()
 
-        code = "JZERO {}".format(reg2) + " {}"
-        code += "\nDEC {}".format(reg4)
-        code += "\nSTORE {} {}".format(reg4, reg3)
-        code += "\n" + commands_code
-        code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg3)
-        code += "\nLOAD {} {}".format(reg2, reg3)
-        code += "\n" + self.generic_translator.copy_register(source_reg=reg2, dest_reg=reg4)
-        if delimiter_has_unknown_value:
-            code += "\n" + self.generic_translator.put_value_to_register(Value(Identifier(limit)), reg1)
+            pre_run_code = self.generic_translator.put_value_to_register(from_value, reg1, ignore_iterator=idd)
+            pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+            pre_run_code += "\nSTORE {} {}".format(reg1, reg2)
+
+            code = ""
+            while iterator.core - downto_value.core >= 0:
+                code += "\n" + commands_code if code else commands_code
+                code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
+                code += "\nLOAD {} {}".format(reg1, reg2)
+                code += "\nDEC {}".format(reg1)
+                code += "\nSTORE {} {}".format(reg1, reg2)
+                iterator.core -= 1
         else:
-            code += "\n" + self.generic_translator.put_value_to_register(downto_value, reg1)
-        code += "\nSUB {} {}".format(reg2, reg1)
-        code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
-        code = code.format(self.generic_translator.line_count(code))
+            reg1 = self.register_machine.fetch_register()
+            reg2 = self.register_machine.fetch_register()
+            reg3 = self.register_machine.fetch_register()
+            reg4 = self.register_machine.fetch_register()
+
+            pre_run_code = self.generic_translator.put_value_to_register(downto_value, reg1, ignore_iterator=idd)
+            if delimiter_has_unknown_value:
+                pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
+                pre_run_code += "\nSTORE {} {}".format(reg1, reg3)
+            pre_run_code += "\n" + self.generic_translator.put_value_to_register(from_value, reg2, ignore_iterator=idd)
+            pre_run_code += "\nINC {}".format(reg2)
+            pre_run_code += "\n" + self.generic_translator.copy_register(source_reg=reg2, dest_reg=reg4)
+            pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg3)
+            pre_run_code += "\nSUB {} {}".format(reg2, reg1)
+
+            code = "JZERO {}".format(reg2) + " {}"
+            code += "\nDEC {}".format(reg4)
+            code += "\nSTORE {} {}".format(reg4, reg3)
+            code += "\n" + commands_code
+            code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg3)
+            code += "\nLOAD {} {}".format(reg2, reg3)
+            code += "\n" + self.generic_translator.copy_register(source_reg=reg2, dest_reg=reg4)
+            if delimiter_has_unknown_value:
+                code += "\n" + self.generic_translator.put_value_to_register(Value(Identifier(limit)), reg1)
+            else:
+                code += "\n" + self.generic_translator.put_value_to_register(downto_value, reg1)
+            code += "\nSUB {} {}".format(reg2, reg1)
+            code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
+            code = code.format(self.generic_translator.line_count(code))
 
         self.variable_table.remove_variable(limit)
         self.variable_table.remove_iterator(idd)
-        return pre_run_code + "\n" + code
+        return pre_run_code + "\n" + code if code else pre_run_code
 
     def __read(self, idd: Identifier) -> str:
         self.variable_table.set_value(None, idd.name, idd.offset)
