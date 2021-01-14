@@ -145,12 +145,10 @@ class LangTranslator:
         self.__set_variable_table(original_var_table)
         self.variable_table.merge_from_two(branch1_var_table, branch2_var_table)
 
-        val1_reg = self.register_machine.fetch_register()
-        val2_reg = self.register_machine.fetch_register()
+        val1 = self.generic_translator.reflect_on_value(condition.val1)
+        val2 = self.generic_translator.reflect_on_value(condition.val2)
 
-        code = self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
-        code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
-        code += "\n" + self.condition_translator.perform_comparison(val1_reg, val2_reg, condition.comparison).format(
+        code = self.condition_translator.perform_comparison(val1, val2, condition.comparison).format(
             self.generic_translator.line_count(positive_commands_code) + 2)
         code += "\n" + positive_commands_code
         code += "\nJUMP {}".format(self.generic_translator.line_count(negative_commands_code) + 1)
@@ -165,12 +163,10 @@ class LangTranslator:
         self.__set_variable_table(original_var_table)
         self.variable_table.merge_from_one(branch_var_table)
 
-        val1_reg = self.register_machine.fetch_register()
-        val2_reg = self.register_machine.fetch_register()
+        val1 = self.generic_translator.reflect_on_value(condition.val1)
+        val2 = self.generic_translator.reflect_on_value(condition.val2)
 
-        code = self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
-        code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
-        code += "\n" + self.condition_translator.perform_comparison(val1_reg, val2_reg, condition.comparison).format(
+        code = self.condition_translator.perform_comparison(val1, val2, condition.comparison).format(
             self.generic_translator.line_count(commands_code) + 1)
         code += "\n" + commands_code
         return code
@@ -182,12 +178,11 @@ class LangTranslator:
         self.variable_table.unset_from_list(changed_identifiers)
         commands_code = self.__generate_code(commands)
         self.variable_table.unset_from_list(changed_identifiers)
-        val1_reg = self.register_machine.fetch_register()
-        val2_reg = self.register_machine.fetch_register()
 
-        code = self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
-        code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
-        code += "\n" + self.condition_translator.perform_comparison(val1_reg, val2_reg, condition.comparison).format(
+        val1 = self.generic_translator.reflect_on_value(condition.val1)
+        val2 = self.generic_translator.reflect_on_value(condition.val2)
+
+        code = self.condition_translator.perform_comparison(val1, val2, condition.comparison).format(
             self.generic_translator.line_count(commands_code) + 2)
         code += "\n" + commands_code
         code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
@@ -199,13 +194,11 @@ class LangTranslator:
         commands_code = self.__generate_code(commands)
         self.variable_table.unset_from_list(changed_identifiers)
 
-        val1_reg = self.register_machine.fetch_register()
-        val2_reg = self.register_machine.fetch_register()
+        val1 = self.generic_translator.reflect_on_value(condition.val1)
+        val2 = self.generic_translator.reflect_on_value(condition.val2)
 
         code = commands_code
-        code += "\n" + self.generic_translator.put_value_to_register(condition.val1, register=val1_reg)
-        code += "\n" + self.generic_translator.put_value_to_register(condition.val2, register=val2_reg)
-        code += "\n" + self.condition_translator.perform_comparison(val1_reg, val2_reg, condition.comparison)
+        code += "\n" + self.condition_translator.perform_comparison(val1, val2, condition.comparison)
         code = code.format(-self.generic_translator.line_count(code) + 1)
         return code
 

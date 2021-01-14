@@ -90,7 +90,7 @@ Test program2.imp passed for input input2.txt in time 28477, i/o: 1100.
 
 Test program2.imp passed for input input3.txt in time 18468, i/o: 300.
 
-Test 2-fib.imp passed for input input1.txt in time 2794, i/o: 200.
+Test 2-fib.imp passed for input input1.txt in time 2682, i/o: 200.
 
 Test 3-fib-factorial.imp passed for input input1.txt in time 16435, i/o: 300.
 

@@ -29,7 +29,7 @@ class OperationTranslator:
 
     ADDITION_SWITCH_THRESHOLD = 10
     MULTIPLICATION_BY_TWOS_SWITCH_THRESHOLD = 1_000_000
-    MULTIPLICATION_BY_CONST_SWITCH_THRESHOLD  = 1_000_000
+    MULTIPLICATION_BY_CONST_SWITCH_THRESHOLD = 1_000_000
 
     def __init__(self, variable_table: LangVariableTable, register_machine: LangRegisterMachine,
                  generic_translator: GenericTranslator):
