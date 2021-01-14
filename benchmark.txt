@@ -1,6 +1,6 @@
-Test arithm1.imp passed for input input1.txt in time 382569, i/o: 200.
+Test arithm1.imp passed for input input1.txt in time 358543, i/o: 200.
 
-Test arithm1.imp passed for input input2.txt in time 382569, i/o: 200.
+Test arithm1.imp passed for input input2.txt in time 358543, i/o: 200.
 
 Test factorial2.imp passed for input input1.txt in time 21922, i/o: 200.
 
@@ -10,9 +10,9 @@ Test factorial3.imp passed for input input1.txt in time 34092, i/o: 200.
 
 Test factorial3.imp passed for input input2.txt in time 368679, i/o: 200.
 
-Test loop.imp passed for input input1.txt in time 765000656, i/o: 300.
+Test loop.imp passed for input input1.txt in time 648000631, i/o: 300.
 
-Test loop_range.imp passed for input input1.txt in time 573, i/o: 300.
+Test loop_range.imp passed for input input1.txt in time 547, i/o: 300.
 
 Test nestedLoop2.imp passed for input input1.txt in time 2274474, i/o: 700.
 
@@ -28,7 +28,7 @@ Test simple2.imp passed for input input3.txt in time 3693, i/o: 2600.
 
 Test tab1.imp passed for input input1.txt in time 30141, i/o: 2500.
 
-Test tab2.imp passed for input input1.txt in time 261200, i/o: 3700.
+Test tab2.imp passed for input input1.txt in time 245405, i/o: 3700.
 
 Test tab3.imp passed for input input1.txt in time 2945, i/o: 400.
 
@@ -82,7 +82,7 @@ Test program0.imp passed for input input1.txt in time 1871, i/o: 600.
 
 Test program0.imp passed for input input2.txt in time 9509, i/o: 2800.
 
-Test program1.imp passed for input input1.txt in time 66447, i/o: 2500.
+Test program1.imp passed for input input1.txt in time 61633, i/o: 2500.
 
 Test program2.imp passed for input input1.txt in time 956995, i/o: 300.
 
@@ -96,19 +96,19 @@ Test 3-fib-factorial.imp passed for input input1.txt in time 17686, i/o: 300.
 
 Test 4-factorial.imp passed for input input1.txt in time 11416, i/o: 200.
 
-Test 5-tab.imp passed for input input1.txt in time 22931, i/o: 2600.
+Test 5-tab.imp passed for input input1.txt in time 20871, i/o: 2600.
 
 Test 6-mod-mult.imp passed for input input1.txt in time 127041, i/o: 400.
 
-Test 7-loopiii.imp passed for input input1.txt in time 355059, i/o: 600.
+Test 7-loopiii.imp passed for input input1.txt in time 312759, i/o: 600.
 
-Test 7-loopiii.imp passed for input input2.txt in time 355059, i/o: 600.
+Test 7-loopiii.imp passed for input input2.txt in time 312759, i/o: 600.
 
-Test 8-for.imp passed for input input1.txt in time 101573, i/o: 600.
+Test 8-for.imp passed for input input1.txt in time 101319, i/o: 600.
 
-Test 9-sort.imp passed for input input1.txt in time 75695, i/o: 4500.
+Test 9-sort.imp passed for input input1.txt in time 73839, i/o: 4500.
 
-Test ADD_array_div_mod.imp passed for input input1.txt in time 19976, i/o: 4200.
+Test ADD_array_div_mod.imp passed for input input1.txt in time 19046, i/o: 4200.
 
 Test ADD_arrays.imp passed for input input1.txt in time 754, i/o: 300.
 
@@ -118,7 +118,7 @@ Test ADD_conditions.imp passed for input input1.txt in time 1783, i/o: 400.
 
 Test ADD_division.imp passed for input input1.txt in time 1253, i/o: 700.
 
-Test ADD_division2.imp passed for input input1.txt in time 10682, i/o: 3600.
+Test ADD_division2.imp passed for input input1.txt in time 9716, i/o: 3600.
 
 Test ADD_edge_operations.imp passed for input input1.txt in time 1066, i/o: 600.
 
@@ -130,13 +130,13 @@ Test ADD_iterator_delimiter.imp passed for input input1.txt in time 1647, i/o: 8
 
 Test ADD_iterator_delimiter.imp passed for input input2.txt in time 1647, i/o: 800.
 
-Test ADD_iterator_variables.imp passed for input input1.txt in time 49531, i/o: 900.
+Test ADD_iterator_variables.imp passed for input input1.txt in time 45409, i/o: 900.
 
-Test ADD_loops.imp passed for input input1.txt in time 20922, i/o: 3400.
+Test ADD_loops.imp passed for input input1.txt in time 20137, i/o: 3400.
 
 Test ADD_modulo.imp passed for input input1.txt in time 1256, i/o: 700.
 
-Test ADD_modulo2.imp passed for input input1.txt in time 10842, i/o: 3600.
+Test ADD_modulo2.imp passed for input input1.txt in time 9715, i/o: 3600.
 
-Test ADD_operation_shortcuts.imp passed for input input1.txt in time 7029, i/o: 3400.
+Test ADD_operation_shortcuts.imp passed for input input1.txt in time 6774, i/o: 3400.
 
