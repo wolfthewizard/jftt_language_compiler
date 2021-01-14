@@ -208,12 +208,12 @@ class LangTranslator:
         return code
 
     def __for_to(self, idd: str, from_value: Value, to_value: Value, commands: list):
-        self.variable_table.add_iterator(idd)
-        limit = self.variable_table.fetch_random_variable()
         from_value = self.generic_translator.reflect_on_value(from_value)
         to_value = self.generic_translator.reflect_on_value(to_value)
         delimiter_has_unknown_value = not to_value.is_int() or \
             to_value.core > self.generic_translator.KNOWN_VARIABLE_LOAD_THRESHOLD
+        self.variable_table.add_iterator(idd)
+        limit = self.variable_table.fetch_random_variable() if delimiter_has_unknown_value else None
 
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
@@ -272,17 +272,18 @@ class LangTranslator:
             code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
             code = code.format(self.generic_translator.line_count(code))
 
-        self.variable_table.remove_variable(limit)
+        if limit is not None:
+            self.variable_table.remove_variable(limit)
         self.variable_table.remove_iterator(idd)
         return pre_run_code + "\n" + code if code else pre_run_code
 
     def __for_downto(self, idd: str, from_value: Value, downto_value: Value, commands: list):
-        self.variable_table.add_iterator(idd)
-        limit = self.variable_table.fetch_random_variable()
         from_value = self.generic_translator.reflect_on_value(from_value)
         downto_value = self.generic_translator.reflect_on_value(downto_value)
         delimiter_has_unknown_value = not downto_value.is_int() or \
             downto_value.core > self.generic_translator.KNOWN_VARIABLE_LOAD_THRESHOLD
+        self.variable_table.add_iterator(idd)
+        limit = self.variable_table.fetch_random_variable() if delimiter_has_unknown_value else None
 
         changed_identifiers = self.generic_translator.get_changed_identifiers(commands)
         self.variable_table.unset_from_list(changed_identifiers)
@@ -339,7 +340,8 @@ class LangTranslator:
             code += "\nJUMP {}".format(-self.generic_translator.line_count(code))
             code = code.format(self.generic_translator.line_count(code))
 
-        self.variable_table.remove_variable(limit)
+        if limit is not None:
+            self.variable_table.remove_variable(limit)
         self.variable_table.remove_iterator(idd)
         return pre_run_code + "\n" + code if code else pre_run_code
 
