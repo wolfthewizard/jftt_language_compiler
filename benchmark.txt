@@ -28,7 +28,7 @@ Test simple2.imp passed for input input3.txt in time 3746, i/o: 2600.
 
 Test tab1.imp passed for input input1.txt in time 30141, i/o: 2500.
 
-Test tab2.imp passed for input input1.txt in time 232707, i/o: 3700.
+Test tab2.imp passed for input input1.txt in time 217415, i/o: 3700.
 
 Test tab3.imp passed for input input1.txt in time 2171, i/o: 400.
 
@@ -44,7 +44,7 @@ Test arithm3.imp passed for input input1.txt in time 268018, i/o: 500.
 
 Test arithm3.imp passed for input input2.txt in time 267920, i/o: 500.
 
-Test calc.imp passed for input input1.txt in time 251206431, i/o: 300.
+Test calc.imp passed for input input1.txt in time 243206431, i/o: 300.
 
 Test compare.imp passed for input input1.txt in time 940, i/o: 500.
 
@@ -106,7 +106,7 @@ Test 7-loopiii.imp passed for input input2.txt in time 270204, i/o: 600.
 
 Test 8-for.imp passed for input input1.txt in time 100405, i/o: 600.
 
-Test 9-sort.imp passed for input input1.txt in time 68641, i/o: 4500.
+Test 9-sort.imp passed for input input1.txt in time 67821, i/o: 4500.
 
 Test ADD_array_div_mod.imp passed for input input1.txt in time 18558, i/o: 4200.
 
@@ -115,6 +115,10 @@ Test ADD_arrays.imp passed for input input1.txt in time 735, i/o: 300.
 Test ADD_arrays.imp passed for input input2.txt in time 595, i/o: 300.
 
 Test ADD_conditions.imp passed for input input1.txt in time 1783, i/o: 400.
+
+Test ADD_constant_mult.imp passed for input input1.txt in time 1551, i/o: 900.
+
+Test ADD_constant_mult.imp passed for input input2.txt in time 1777, i/o: 900.
 
 Test ADD_division.imp passed for input input1.txt in time 1253, i/o: 700.
 
@@ -130,9 +134,9 @@ Test ADD_iterator_delimiter.imp passed for input input1.txt in time 1631, i/o: 8
 
 Test ADD_iterator_delimiter.imp passed for input input2.txt in time 1631, i/o: 800.
 
-Test ADD_iterator_variables.imp passed for input input1.txt in time 44155, i/o: 900.
+Test ADD_iterator_variables.imp passed for input input1.txt in time 44117, i/o: 900.
 
-Test ADD_loops.imp passed for input input1.txt in time 18821, i/o: 3400.
+Test ADD_loops.imp passed for input input1.txt in time 18333, i/o: 3400.
 
 Test ADD_modulo.imp passed for input input1.txt in time 1256, i/o: 700.
 

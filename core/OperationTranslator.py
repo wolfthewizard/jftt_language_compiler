@@ -28,7 +28,8 @@ def log(num: int) -> int:
 class OperationTranslator:
 
     ADDITION_SWITCH_THRESHOLD = 10
-    MULTIPLICATION_SWITCH_THRESHOLD = 1_000_000
+    MULTIPLICATION_BY_TWOS_SWITCH_THRESHOLD = 1_000_000
+    MULTIPLICATION_BY_CONST_SWITCH_THRESHOLD  = 1_000
 
     def __init__(self, variable_table: LangVariableTable, register_machine: LangRegisterMachine,
                  generic_translator: GenericTranslator):
@@ -145,12 +146,14 @@ class OperationTranslator:
                 reg = self.register_machine.fetch_register()
                 code = "RESET {}".format(reg)
                 return Feedback(code, reg)
-            elif num < OperationTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
+            elif num < OperationTranslator.MULTIPLICATION_BY_TWOS_SWITCH_THRESHOLD and is_power_of_two(num):
                 reg = self.register_machine.fetch_register()
                 code = self.generic_translator.put_value_to_register(val, reg)
                 if num > 1:
                     code += "\n" + "\n".join(["SHL {}".format(reg) for _ in range(log(num))])
                 return Feedback(code, reg)
+            elif num < OperationTranslator.MULTIPLICATION_BY_CONST_SWITCH_THRESHOLD:
+                return self.__perform_multiplication_1i_1v(val, num)
             else:
                 return self.__perform_multiplication_2i(left_val, right_val)
         else:
@@ -183,6 +186,21 @@ class OperationTranslator:
         code += "\nJUMP -4"
         return Feedback(code, reg1)
 
+    def __perform_multiplication_1i_1v(self, val: Value, num: int) -> Feedback:
+        reg = self.register_machine.fetch_register()
+        helper_reg = self.register_machine.borrow_register()
+
+        code = self.generic_translator.put_value_to_register(val, helper_reg)
+        code += "\nRESET {}".format(reg)
+        while num > 0:
+            if num % 2:
+                code += "\nADD {} {}".format(reg, helper_reg)
+                num -= 1
+            else:
+                code += "\nSHL {}".format(helper_reg)
+                num //= 2
+        return Feedback(code, reg)
+
     def __perform_division(self, left_val: Value, right_val: Value, changed_identifier: Identifier) -> Feedback:
         if left_val.is_int() and right_val.is_int():
             result = left_val.core // right_val.core if right_val.core != 0 else 0
@@ -197,7 +215,7 @@ class OperationTranslator:
                 reg = self.register_machine.fetch_register()
                 code = "RESET {}".format(reg)
                 return Feedback(code, reg)
-            elif num < OperationTranslator.MULTIPLICATION_SWITCH_THRESHOLD and is_power_of_two(num):
+            elif num < OperationTranslator.MULTIPLICATION_BY_TWOS_SWITCH_THRESHOLD and is_power_of_two(num):
                 reg = self.register_machine.fetch_register()
                 code = self.generic_translator.put_value_to_register(left_val, reg)
                 if num > 1:
