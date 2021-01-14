@@ -46,7 +46,9 @@ class LangTranslator:
         self.generic_translator.register_machine = register_machine
 
     def translate_program(self, program: LangProgram):
-        for declaration in program.declarations:
+        for declaration in program.get_variable_and_unary_array_declarations():
+            self.__declare(declaration)
+        for declaration in program.get_non_unary_array_declarations():
             self.__declare(declaration)
         code = self.__generate_code(program.commands)
         code += "\nHALT"
@@ -248,7 +250,8 @@ class LangTranslator:
             pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(idd), reg2)
             pre_run_code += "\nSTORE {} {}".format(reg1, reg2)
             if delimiter_has_unknown_value:
-                pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2, ignore_iterator=idd)
+                pre_run_code += "\n" + self.generic_translator.put_value_to_register(to_value, reg2,
+                                                                                     ignore_iterator=idd)
                 pre_run_code += "\nINC {}".format(reg2)
                 pre_run_code += "\n" + self.generic_translator.put_address_to_register(Identifier(limit), reg3)
                 pre_run_code += "\nSTORE {} {}".format(reg2, reg3)
