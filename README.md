@@ -7,24 +7,32 @@ The compiler is programmed in python using SLY (sly lex-yacc), a library similar
 ## Prerequisites
 The compiler is based on sly, which can be installed using:
 ```
-sudo pip install sly
+sudo pip3 install sly
 ```
 
 Virtual machine (author: dr Maciej Gębala) is compiled using `g++` with the addition of `cln` library. The machine itself utilises *flex* and* bison* so they need to be installed too. We use *make* to compile.
-```sudo apt install g++```
-```sudo apt install cln-dev```
-```sudo apt install flex```
-```sudo apt install bison```
-```sudo apt install make```
+```
+sudo apt install g++
+sudo apt install cln-dev
+sudo apt install flex
+sudo apt install bison
+sudo apt install make
+```
 
 ## Setup
 To run the program, we need to compile the virtual machine.
-```make```
+```
+make
+```
 
 ## Compilation
-```python kompilator.py source_file destination_file```
+```
+python3 kompilator.py source_file destination_file
+```
 *source_file* is where the source code is written
 *destination_file* is where generated assembly code will be put
 
 ## Running the program
-```./vm destination_file```
+```
+./vm destination_file
+```
