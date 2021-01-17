@@ -1,6 +1,6 @@
-Test arithm1.imp passed for input input1.txt in time 358531, i/o: 200.
+Test arithm1.imp passed for input input1.txt in time 358528, i/o: 200.
 
-Test arithm1.imp passed for input input2.txt in time 358531, i/o: 200.
+Test arithm1.imp passed for input input2.txt in time 358528, i/o: 200.
 
 Test factorial2.imp passed for input input1.txt in time 21922, i/o: 200.
 
@@ -10,15 +10,15 @@ Test factorial3.imp passed for input input1.txt in time 31692, i/o: 200.
 
 Test factorial3.imp passed for input input2.txt in time 344679, i/o: 200.
 
-Test loop.imp passed for input input1.txt in time 605000631, i/o: 300.
+Test loop.imp passed for input input1.txt in time 605000582, i/o: 300.
 
 Test loop_range.imp passed for input input1.txt in time 527, i/o: 300.
 
-Test nestedLoop2.imp passed for input input1.txt in time 2183968, i/o: 700.
+Test nestedLoop2.imp passed for input input1.txt in time 2181966, i/o: 700.
 
-Test simple1.imp passed for input input1.txt in time 2601, i/o: 1600.
+Test simple1.imp passed for input input1.txt in time 2583, i/o: 1600.
 
-Test simple1.imp passed for input input2.txt in time 2654, i/o: 1600.
+Test simple1.imp passed for input input2.txt in time 2636, i/o: 1600.
 
 Test simple2.imp passed for input input1.txt in time 3810, i/o: 2600.
 
@@ -26,23 +26,23 @@ Test simple2.imp passed for input input2.txt in time 3862, i/o: 2600.
 
 Test simple2.imp passed for input input3.txt in time 3746, i/o: 2600.
 
-Test tab1.imp passed for input input1.txt in time 30141, i/o: 2500.
+Test tab1.imp passed for input input1.txt in time 29979, i/o: 2500.
 
-Test tab2.imp passed for input input1.txt in time 215465, i/o: 3700.
+Test tab2.imp passed for input input1.txt in time 215453, i/o: 3700.
 
-Test tab3.imp passed for input input1.txt in time 2171, i/o: 400.
+Test tab3.imp passed for input input1.txt in time 2165, i/o: 400.
 
-Test tab3.imp passed for input input2.txt in time 2171, i/o: 400.
+Test tab3.imp passed for input input2.txt in time 2165, i/o: 400.
 
-Test tab3.imp passed for input input3.txt in time 2247, i/o: 400.
+Test tab3.imp passed for input input3.txt in time 2241, i/o: 400.
 
-Test arithm2.imp passed for input input1.txt in time 407007, i/o: 800.
+Test arithm2.imp passed for input input1.txt in time 405003, i/o: 800.
 
-Test arithm2.imp passed for input input2.txt in time 407007, i/o: 800.
+Test arithm2.imp passed for input input2.txt in time 405003, i/o: 800.
 
-Test arithm3.imp passed for input input1.txt in time 268012, i/o: 500.
+Test arithm3.imp passed for input input1.txt in time 268010, i/o: 500.
 
-Test arithm3.imp passed for input input2.txt in time 267914, i/o: 500.
+Test arithm3.imp passed for input input2.txt in time 267912, i/o: 500.
 
 Test calc.imp passed for input input1.txt in time 243206431, i/o: 300.
 
@@ -58,7 +58,7 @@ Test compare.imp passed for input input5.txt in time 902, i/o: 500.
 
 Test compare.imp passed for input input6.txt in time 902, i/o: 500.
 
-Test cond1.imp passed for input input1.txt in time 606, i/o: 300.
+Test cond1.imp passed for input input1.txt in time 598, i/o: 300.
 
 Test cond2.imp passed for input input1.txt in time 553, i/o: 400.
 
@@ -76,7 +76,7 @@ Test 0-div-mod.imp passed for input input1.txt in time 781, i/o: 600.
 
 Test 0-div-mod.imp passed for input input2.txt in time 2704, i/o: 600.
 
-Test 1-numbers.imp passed for input input1.txt in time 2882, i/o: 1700.
+Test 1-numbers.imp passed for input input1.txt in time 2866, i/o: 1700.
 
 Test program0.imp passed for input input1.txt in time 1769, i/o: 600.
 
@@ -90,7 +90,7 @@ Test program2.imp passed for input input2.txt in time 27845, i/o: 1100.
 
 Test program2.imp passed for input input3.txt in time 17928, i/o: 300.
 
-Test 2-fib.imp passed for input input1.txt in time 2682, i/o: 200.
+Test 2-fib.imp passed for input input1.txt in time 2677, i/o: 200.
 
 Test 3-fib-factorial.imp passed for input input1.txt in time 16435, i/o: 300.
 
@@ -100,25 +100,25 @@ Test 5-tab.imp passed for input input1.txt in time 19705, i/o: 2600.
 
 Test 6-mod-mult.imp passed for input input1.txt in time 124822, i/o: 400.
 
-Test 7-loopiii.imp passed for input input1.txt in time 270204, i/o: 600.
+Test 7-loopiii.imp passed for input input1.txt in time 270202, i/o: 600.
 
-Test 7-loopiii.imp passed for input input2.txt in time 270204, i/o: 600.
+Test 7-loopiii.imp passed for input input2.txt in time 270202, i/o: 600.
 
 Test 8-for.imp passed for input input1.txt in time 100405, i/o: 600.
 
 Test 9-sort.imp passed for input input1.txt in time 65327, i/o: 4500.
 
-Test ADD_array_div_mod.imp passed for input input1.txt in time 18426, i/o: 4200.
+Test ADD_array_div_mod.imp passed for input input1.txt in time 18246, i/o: 4200.
 
-Test ADD_arrays.imp passed for input input1.txt in time 735, i/o: 300.
+Test ADD_arrays.imp passed for input input1.txt in time 732, i/o: 300.
 
-Test ADD_arrays.imp passed for input input2.txt in time 595, i/o: 300.
+Test ADD_arrays.imp passed for input input2.txt in time 592, i/o: 300.
 
 Test ADD_conditions.imp passed for input input1.txt in time 1703, i/o: 400.
 
-Test ADD_conditions_v2.imp passed for input input1.txt in time 3261, i/o: 2200.
+Test ADD_conditions_v2.imp passed for input input1.txt in time 3246, i/o: 2200.
 
-Test ADD_conditions_v2_alt.imp passed for input input1.txt in time 3255, i/o: 2100.
+Test ADD_conditions_v2_alt.imp passed for input input1.txt in time 3240, i/o: 2100.
 
 Test ADD_constant_mult.imp passed for input input1.txt in time 1551, i/o: 900.
 
@@ -138,13 +138,13 @@ Test ADD_iterator_delimiter.imp passed for input input1.txt in time 1631, i/o: 8
 
 Test ADD_iterator_delimiter.imp passed for input input2.txt in time 1631, i/o: 800.
 
-Test ADD_iterator_variables.imp passed for input input1.txt in time 44117, i/o: 900.
+Test ADD_iterator_variables.imp passed for input input1.txt in time 44116, i/o: 900.
 
-Test ADD_loops.imp passed for input input1.txt in time 18201, i/o: 3400.
+Test ADD_loops.imp passed for input input1.txt in time 18200, i/o: 3400.
 
-Test ADD_matmult_gotfryd.imp passed for input input1.txt in time 44314, i/o: 3100.
+Test ADD_matmult_gotfryd.imp passed for input input1.txt in time 44296, i/o: 3100.
 
-Test ADD_matmult_gotfryd.imp passed for input input2.txt in time 168713, i/o: 8100.
+Test ADD_matmult_gotfryd.imp passed for input input2.txt in time 168683, i/o: 8100.
 
 Test ADD_modulo.imp passed for input input1.txt in time 1256, i/o: 700.
 
@@ -152,19 +152,19 @@ Test ADD_modulo2.imp passed for input input1.txt in time 9091, i/o: 3600.
 
 Test ADD_operation_shortcuts.imp passed for input input1.txt in time 6629, i/o: 3400.
 
-Test ZANIEL_matmult.imp passed for input input1.txt in time 41623, i/o: 3100.
+Test ZANIEL_matmult.imp passed for input input1.txt in time 41605, i/o: 3100.
 
-Test ZANIEL_matmult.imp passed for input input2.txt in time 160872, i/o: 8100.
+Test ZANIEL_matmult.imp passed for input input2.txt in time 160842, i/o: 8100.
 
-Test ZANIEL_betterfor.imp passed for input input1.txt in time 5623, i/o: 1100.
+Test ZANIEL_betterfor.imp passed for input input1.txt in time 5619, i/o: 1100.
 
-Test ZANIEL_betterfor.imp passed for input input2.txt in time 5595, i/o: 1100.
+Test ZANIEL_betterfor.imp passed for input input2.txt in time 5591, i/o: 1100.
 
-Test ZANIEL_matmult.imp passed for input input1.txt in time 43605, i/o: 3100.
+Test ZANIEL_matmult.imp passed for input input1.txt in time 43515, i/o: 3100.
 
-Test ZANIEL_matmult.imp passed for input input2.txt in time 165920, i/o: 8100.
+Test ZANIEL_matmult.imp passed for input input2.txt in time 165590, i/o: 8100.
 
-Test ZANIEL_matmult.imp passed for input input1.txt in time 43296, i/o: 3100.
+Test ZANIEL_matmult.imp passed for input input1.txt in time 43242, i/o: 3100.
 
-Test ZANIEL_matmult.imp passed for input input2.txt in time 164977, i/o: 8100.
+Test ZANIEL_matmult.imp passed for input input2.txt in time 164797, i/o: 8100.
 

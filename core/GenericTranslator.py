@@ -56,6 +56,9 @@ class GenericTranslator:
     def generate_constant(value: int, register) -> str:
         if value < 0:
             raise ValueError("Stuck upon negative value; please report this error along with stacktrace.")
+
+        value2 = value
+
         commands = []
         while value:
             if value % 2:
@@ -65,7 +68,19 @@ class GenericTranslator:
                 commands.append("SHL {}".format(register))
                 value //= 2
         commands.append("RESET {}".format(register))
-        return "\n".join(commands[::-1])
+
+        commands_alt = []
+        while value2 > 1:
+            if value2 % 2:
+                commands_alt.append("DEC {}".format(register))
+                value2 += 1
+            else:
+                commands_alt.append("SHL {}".format(register))
+                value2 //= 2
+        commands_alt.append("INC {}".format(register))
+        commands_alt.append("RESET {}".format(register))
+
+        return "\n".join(commands[::-1]) if len(commands) <= len(commands_alt) else "\n".join(commands_alt[::-1])
 
     def reflect_on_value(self, val: Value):
         if not val.is_int():
