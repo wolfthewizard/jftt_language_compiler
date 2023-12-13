@@ -4,6 +4,8 @@
 This is a compiler for a simple programming language defined by dr Maciej Gębala. The language rules and virtual machine specification are given in *labor4.pdf* in polish.
 The compiler is programmed in python using SLY (sly lex-yacc), a library similar to original lex/flex and yacc/bison - tools used for tokenization and constructing parse trees of given context-free grammar.
 
+This compiler was ranked 5th of around 90 entries for efficiency of generated code, based on average of ranks achieved for each test.
+
 ## Prerequisites
 The compiler is based on sly, which can be installed using:
 ```
